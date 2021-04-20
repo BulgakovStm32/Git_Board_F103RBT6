@@ -33,16 +33,16 @@ void Spi1Init(void){
   
 	SPI1->CR1	 = 0;
 	SPI1->CR1 |=(SPI_CR1_MSTR |     //режим "мастер".  
-							 SPI_CR1_BR_0 |     //задаем скорость. Fpclk/32 = 36MHz/32 = 1.125MHz
-							 //SPI_CR1_BR_1 |
-							 //SPI_CR1_BR_2 |
-               //SPI_CR1_LSBFIRST |//Младшим битом вперед
-               //SPI_CR1_CPHA |      
-               //SPI_CR1_CPOL |
-               //SPI_CR1_DFF  |	 // 16 бит данных.
-               SPI_CR1_SSI  |   //обеспечить высокий уровень программного NSS
-               SPI_CR1_SSM  |   //разрешить программное формирование NSS
-               SPI_CR1_SPE   ); //разрешить работу модуля SPI
+				 SPI_CR1_BR_0 |     //задаем скорость. Fpclk/32 = 36MHz/32 = 1.125MHz
+				 //SPI_CR1_BR_1 |
+				 //SPI_CR1_BR_2 |
+                 //SPI_CR1_LSBFIRST |//Младшим битом вперед
+                 //SPI_CR1_CPHA |
+                 //SPI_CR1_CPOL |
+                 //SPI_CR1_DFF  |	 // 16 бит данных.
+                 SPI_CR1_SSI  |   //обеспечить высокий уровень программного NSS
+                 SPI_CR1_SSM  |   //разрешить программное формирование NSS
+                 SPI_CR1_SPE   ); //разрешить работу модуля SPI
 	//--------------------	                  
 //	SPI2->CR1    |= SPI_CR1_LSBFIRST;
 //	SPI2->CR1    |= SPI_CR1_DFF;				// 16 бит данных.

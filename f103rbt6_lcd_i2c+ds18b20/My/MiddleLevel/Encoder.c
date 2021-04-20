@@ -7,7 +7,7 @@ static void Encoder_Turn(uint16_t *parameter, uint16_t min, uint16_t max);
 
 static Encoder_t EncoderStr = {.ButtonIsPress = 0,
 							   .Loop          = &Encoder_Loop,
-							   .Rotation      = &Encoder_Turn};
+							   .Turn          = &Encoder_Turn};
 
 static uint8_t EncoderStateReg = ENCODER_NO_TURN;//Регистр состияния энкодера.
 //-----------------------------------------------------------------------------
@@ -60,7 +60,7 @@ static void Encoder_Loop(void){
 		//-----------
 		//произошло вращение энкодера.		
 		case ENCODER_TURN:
-			if( !(EncoderPORT->IDR & EncoderPinA) && (EncoderPORT->IDR & EncoderPinB))
+		  if( !(EncoderPORT->IDR & EncoderPinA) && (EncoderPORT->IDR & EncoderPinB))
 				{
 					EncoderStateReg = ENCODER_TURN_RIGHT;//щелчок вправо.
 				}     

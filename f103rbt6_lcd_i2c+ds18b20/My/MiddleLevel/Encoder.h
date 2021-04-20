@@ -25,7 +25,7 @@ typedef struct{
 	uint8_t ButtonIsPress :1;
 	//--------
 	void (*Loop)();
-	void (*Rotation)(uint16_t *parameter, uint16_t min, uint16_t max);
+	void (*Turn)(uint16_t *parameter, uint16_t min, uint16_t max);
 }Encoder_t;
 //-----------------------------------------------------------------------------
 void 	   Encoder_Init(void);

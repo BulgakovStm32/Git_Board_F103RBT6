@@ -47,8 +47,8 @@ void Time_Calculation(uint32_t count){
 //************************************************************
 void Led_Blink(void){
 
-	if(Blink(INTERVAL_100_mS)) LedPC13On();
-	else					   LedPC13Off();
+	if(Blink(INTERVAL_50_mS)) LedPC13On();
+	else					  LedPC13Off();
 
 //	if(Blink(INTERVAL_250_mS)) LedPA6_On();
 //	else					   LedPA6_Off();
@@ -400,6 +400,21 @@ void set_led_color(uint8_t numLed, uint8_t red, uint8_t green, uint8_t blue){
 }
 //*******************************************************************************************
 //*******************************************************************************************
+//Атомарные операции в Cortex-M3. LDREX и STREX
+
+#include "core_cm3.h"
+
+volatile uint32_t atomicReg = 0;
+
+//************************************************************
+void AtomicOperation(void){
+
+	volatile uint32_t temp = 0;
+
+	temp = __LDREXW(&atomicReg);
+}
+//*******************************************************************************************
+//*******************************************************************************************
 int main(void){
 
 	uint16_t dsRes = 0;
@@ -408,7 +423,7 @@ int main(void){
 	//Drivers.
 	Sys_Init();
 	Gpio_Init();
-
+	Spi1Init();
 
 	//TIM3_InitForPWM();
 	//TIM1_InitForCapture();
@@ -427,21 +442,20 @@ int main(void){
 	__enable_irq();
 
 
-	I2C_Init(SSD1306_I2C);//I2C_Int_Init(SSD1306_I2C);
+//	I2C_Init(SSD1306_I2C);//I2C_Int_Init(SSD1306_I2C);
 	//***********************************************
 
 //	__disable_irq();
 	msDelay(1000);
 	//***********************************************
 	//Энкодер.
-//	EncoderInit();
-
+	Encoder_Init();
 	//***********************************************
 	//LCD Lm6063. - Работает.
-//	Lcd_Init();
-//	Lcd_String(1, 1);
-//	Lcd_Print("Hello World!!!");
-//	Lcd_Update();
+	Lcd_Init();
+	Lcd_String(1, 1);
+	Lcd_Print("Hello World!!!");
+	Lcd_Update();
 	//***********************************************
 	//LCD 16x2 I2C - Работает.
 //	I2C_Init(LCD_I2C);
@@ -455,11 +469,11 @@ int main(void){
 	//***********************************************
 	//OLED SSD1306
 	//I2C_Init(SSD1306_I2C);//I2C_Int_Init(SSD1306_I2C);
-	SSD1306_Init(SSD1306_I2C);
+	//SSD1306_Init(SSD1306_I2C);
 	//***********************************************
 	//DS18B20
-	DS18B20_Init(DS18B20_Resolution_12_bit);
-	DS18B20_StartConvertTemperature();
+	//DS18B20_Init(DS18B20_Resolution_12_bit);
+	//DS18B20_StartConvertTemperature();
 	//***********************************************
 	//Акселерометр BMI160.
 	//BMI160_Init();
@@ -467,12 +481,12 @@ int main(void){
 	//MPU6050_Init();
 	//***********************************************
 	//датчик температуры и влажности AHT10.
-	AHT10_SoftReset();
+	//AHT10_SoftReset();
 	//***********************************************
 	//Работа с платой RTC.
 	//Запуск часов.
-	uint8_t DS1307_Cmd = 0;
-	I2C_Write(I2C2, DS1307_ADDR, 0x00, &DS1307_Cmd, 1);
+	//uint8_t DS1307_Cmd = 0;
+	//I2C_Write(I2C2, DS1307_ADDR, 0x00, &DS1307_Cmd, 1);
 	//***********************************************
 	//Переход в режим Sleep. - не отлажено!!!
 //	DBGMCU->CR |=  DBGMCU_CR_DBG_SLEEP;    //Отладка в режимах пониженного энергопотребления
@@ -484,6 +498,11 @@ int main(void){
 	while(1)
 		{
 			msDelay(10);
+			//***********************************************
+			//Обучение. Атомарные операции в Cortex-M3. LDREX и STREX
+			AtomicOperation();
+
+
 			//***********************************************
 			//Обучение ШИМ.
 
@@ -536,25 +555,23 @@ int main(void){
 			//Таймер TIM1 в режиме захвата.
 			//TIM1->CCR1 = 10;
 
-
-
 			//***********************************************
 			//Работа с платой RTC.
 			//Чтение регистров времени
-			I2C_Read(I2C2, DS1307_ADDR, 0x00, (uint8_t*)&DS1307Str, 8);
+			//I2C_Read(I2C2, DS1307_ADDR, 0x00, (uint8_t*)&DS1307Str, 8);
 			//Вывод времени.
-			Lcd_String(1, 2);
-			Lcd_Print("DS1307  : ");
-			//часы
-			Lcd_BinToDec(DS1307Str.Hours, 2, LCD_CHAR_SIZE_NORM);
-			Lcd_Chr(':');
-			//минуты
-			uint8_t min = ((DS1307Str.Minutes >> 4) * 10) + (DS1307Str.Minutes & 0x0F);
-			Lcd_BinToDec(min , 2, LCD_CHAR_SIZE_NORM);
-			Lcd_Chr(':');
-			//секунды
-			uint8_t sec = ((DS1307Str.Seconds >> 4) * 10) + (DS1307Str.Seconds & 0x0F);
-			Lcd_BinToDec(sec , 2, LCD_CHAR_SIZE_NORM);
+//			Lcd_String(1, 2);
+//			Lcd_Print("DS1307  : ");
+//			//часы
+//			Lcd_BinToDec(DS1307Str.Hours, 2, LCD_CHAR_SIZE_NORM);
+//			Lcd_Chr(':');
+//			//минуты
+//			uint8_t min = ((DS1307Str.Minutes >> 4) * 10) + (DS1307Str.Minutes & 0x0F);
+//			Lcd_BinToDec(min , 2, LCD_CHAR_SIZE_NORM);
+//			Lcd_Chr(':');
+//			//секунды
+//			uint8_t sec = ((DS1307Str.Seconds >> 4) * 10) + (DS1307Str.Seconds & 0x0F);
+//			Lcd_BinToDec(sec , 2, LCD_CHAR_SIZE_NORM);
 			//***********************************************
 			//Планировщик.
 //			Scheduler();
@@ -567,9 +584,9 @@ int main(void){
 //				}
 			//***********************************************
 			//Мигание светодиодами.
-			Led_Blink();
+			//Led_Blink();
 			//DS18B20
-			Temperature_Get(&dsRes);
+			//Temperature_Get(&dsRes);
 			//***********************************************
 			//LCD 128x64 - Работает.
 
@@ -579,15 +596,18 @@ int main(void){
 			Lcd_String(1, 1);
 			Lcd_Print("IMU v1.0 Test");
 			//Вывод времени.
-//			Lcd_String(1, 2);
-//			Lcd_Print("Time:");
-//			Lcd_BinToDec(Time.hour, 2, LCD_CHAR_SIZE_NORM);//часы
-//			Lcd_Chr(':');
-//			Lcd_BinToDec(Time.min, 2, LCD_CHAR_SIZE_NORM); //минуты
-//			Lcd_Chr(':');
-//			Lcd_BinToDec(Time.sec, 2, LCD_CHAR_SIZE_NORM); //секунды
+			Lcd_String(1, 2);
+			Lcd_Print("Time:");
+			Lcd_BinToDec(Time.hour, 2, LCD_CHAR_SIZE_NORM);//часы
+			Lcd_Chr(':');
+			Lcd_BinToDec(Time.min, 2, LCD_CHAR_SIZE_NORM); //минуты
+			Lcd_Chr(':');
+			Lcd_BinToDec(Time.sec, 2, LCD_CHAR_SIZE_NORM); //секунды
 
 			//Вывод темперетуры DS18B20.
+			Encoder()->Turn(&dsRes, 0, 1000);
+
+
 			Lcd_String(1, 3);
 			Lcd_Print("DS18B20 =");
 			if(DS18B20_GetTemperatureSign() & DS18B20_SIGN_NEGATIVE)Lcd_Chr('-');
@@ -648,9 +668,9 @@ int main(void){
 
 
 			Lcd_String(21, 1);
-			if(Blink(INTERVAL_50_mS))Lcd_Chr(':');
+			if(Blink(INTERVAL_500_mS))Lcd_Chr(':');
 			else                     Lcd_Chr(' ');
-//			//Мигабщая окружность.
+//			//Мигающая окружность.
 //			if(Blink(INTERVAL_500_mS))Lcd_Circle(100, 16, 16, PIXEL_ON);
 //			else				      Lcd_Circle(100, 16, 16, PIXEL_OFF);
 //			//Мигающий квадрат в правом нижмнем углу.
@@ -664,7 +684,7 @@ int main(void){
 			//Прогрессбар.
 			//Lcd_Bar(38, 118, 27, 118, 100);
 
-			Lcd_Update();//вывод сделан для SSD1306
+			Lcd_Update();//вывод сделан для Lm6063
 			Lcd_Clear();
 			//***********************************************
 			//LCD 16x2 I2C - Работает.
@@ -710,27 +730,27 @@ int main(void){
 //			MPU6050Str.Acc[2] = expRunningAverage(MPU6050Str.Acc[2]);
 			//***********************************************
 			//датчик температуры и влажности AHT10.
-			if(tic(Blink(INTERVAL_250_mS)))AHT10_GetTemperature();
-
-			//AHT10_GetTemperature();
-
-			//Вывод темперартуры.
-			Lcd_String(1, 4);
-			Lcd_Print("AHT10_T = ");
-			Lcd_BinToDec(AHT10Str.Temperature / 10, 2, LCD_CHAR_SIZE_NORM);
-			Lcd_Chr('.');
-			Lcd_BinToDec(AHT10Str.Temperature % 10, 1, LCD_CHAR_SIZE_NORM);
-			Lcd_Print(" C");
-
-			//Вывод влажности.
-			AHT10Str.Humidity = expRunningAverage(AHT10Str.Humidity);
-			//AHT10Str.Humidity = runMiddleArifmOptim(AHT10Str.Humidity);
-			Lcd_String(1, 5);
-			Lcd_Print("AHT10_H = ");
-			Lcd_BinToDec(AHT10Str.Humidity / 100, 2, LCD_CHAR_SIZE_NORM);
-			Lcd_Chr('.');
-			Lcd_BinToDec(AHT10Str.Humidity % 10, 1, LCD_CHAR_SIZE_NORM);
-			Lcd_Print(" %");
+//			if(tic(Blink(INTERVAL_250_mS)))AHT10_GetTemperature();
+//
+//			//AHT10_GetTemperature();
+//
+//			//Вывод темперартуры.
+//			Lcd_String(1, 4);
+//			Lcd_Print("AHT10_T = ");
+//			Lcd_BinToDec(AHT10Str.Temperature / 10, 2, LCD_CHAR_SIZE_NORM);
+//			Lcd_Chr('.');
+//			Lcd_BinToDec(AHT10Str.Temperature % 10, 1, LCD_CHAR_SIZE_NORM);
+//			Lcd_Print(" C");
+//
+//			//Вывод влажности.
+//			AHT10Str.Humidity = expRunningAverage(AHT10Str.Humidity);
+//			//AHT10Str.Humidity = runMiddleArifmOptim(AHT10Str.Humidity);
+//			Lcd_String(1, 5);
+//			Lcd_Print("AHT10_H = ");
+//			Lcd_BinToDec(AHT10Str.Humidity / 100, 2, LCD_CHAR_SIZE_NORM);
+//			Lcd_Chr('.');
+//			Lcd_BinToDec(AHT10Str.Humidity % 10, 1, LCD_CHAR_SIZE_NORM);
+//			Lcd_Print(" %");
 			//***********************************************
 			/* Sleep */
 			//__WFI();

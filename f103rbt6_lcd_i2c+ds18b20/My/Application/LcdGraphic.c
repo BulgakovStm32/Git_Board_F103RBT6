@@ -27,9 +27,9 @@ void Lcd_Init(void){
 //Вывод буфера на дисплей.
 void Lcd_Update(void){
 
-//	Lm6063LcdUpdate(LcdCache);
-//	Lcd_TIC32_SendData(LcdCache);
-	SSD1306_UpdateScreen(lcdVideoBuffer);
+	Lm6063LcdUpdate(lcdVideoBuffer);
+//	Lcd_TIC32_SendData(lcdVideoBuffer);
+//	SSD1306_UpdateScreen(lcdVideoBuffer);
 }
 //*****************************************************************************
 uint8_t* Lcd_pVideoBuffer(void){
