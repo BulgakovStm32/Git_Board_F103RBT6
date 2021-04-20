@@ -388,7 +388,7 @@ void set_led_color(uint8_t numLed, uint8_t red, uint8_t green, uint8_t blue){
 	uint8_t i;
 	//----------------
 	for(i = 0; i < 8; i++)
-		pwm_values[24 * numLed + i] = ((red   >> (7 - i)) & 1) ? 36 : 12;
+		pwm_values[24 * numLed + i] = ((red >> (7 - i)) & 1) ? 36 : 12;
 
 	for(i = 0; i < 8; i++)
 		pwm_values[24 * numLed + 8  + i] = ((green >> (7 - i)) & 1) ? 36 : 12;
@@ -502,6 +502,13 @@ int main(void){
 			//Обучение. Атомарные операции в Cortex-M3. LDREX и STREX
 			AtomicOperation();
 
+			uint32_t x = 12;
+			uint32_t t = 15;
+
+//			if(x > 0) t = 1;
+//			else      t = 0;
+
+			t = x > 12;
 
 			//***********************************************
 			//Обучение ШИМ.
@@ -669,7 +676,7 @@ int main(void){
 
 			Lcd_String(21, 1);
 			if(Blink(INTERVAL_500_mS))Lcd_Chr(':');
-			else                     Lcd_Chr(' ');
+			else                      Lcd_Chr(' ');
 //			//Мигающая окружность.
 //			if(Blink(INTERVAL_500_mS))Lcd_Circle(100, 16, 16, PIXEL_ON);
 //			else				      Lcd_Circle(100, 16, 16, PIXEL_OFF);
