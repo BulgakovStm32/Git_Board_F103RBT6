@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>f103rbt6_blinkLed</name>
+	<name>f103rbt6_lcd_i2c+ds18b20</name>
 	<comment></comment>
 	<projects>
 	</projects>

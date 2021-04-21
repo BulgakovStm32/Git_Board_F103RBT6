@@ -503,12 +503,18 @@ int main(void){
 			AtomicOperation();
 
 			uint32_t x = 12;
-			uint32_t t = 15;
+			const uint32_t t = 15;
+			uint32_t *const p = &x;
 
 //			if(x > 0) t = 1;
 //			else      t = 0;
 
-			t = x > 12;
+//			t = x > 12;
+
+			//p = &x;
+			//p = &t;
+			//t  = 20;
+			//*p = 30;
 
 			//***********************************************
 			//Обучение ШИМ.
