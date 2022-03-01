@@ -1,7 +1,7 @@
 /*
  * 	main.c
  *
- *  Created on: 19 октября 2021 года.
+ *  Created on: 1 марта 2022 года.
  *  Autho     : Беляев А.А.
  *
  *	Описание        :
@@ -557,7 +557,6 @@ int main(void){
 	SysTick_Init();
 	microDelay_Init();
 	USART_Init(USART1, USART1_BRR);
-	Spi1Init();
 	//Adc_Init();
 
 	microDelay(100000);//Эта задержка нужна для стабилизации напряжения патания.
