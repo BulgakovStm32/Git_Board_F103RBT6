@@ -355,18 +355,6 @@ void Task_Temperature_Display(void){
 	Lcd_Print("Button=");
 	Lcd_BinToDec((uint16_t)ButtonPressCount, 4, LCD_CHAR_SIZE_NORM);
 
-	//PID
-	Lcd_SetCursor(1, 8);
-	Lcd_Print("PID_Out=");
-
-	if(PIDcontrol < 0)
-	{
-		PIDcontrol = (PIDcontrol ^ 0xFFFF) + 1;//Уберем знак.
-		Lcd_Chr('-');
-	}
-	else Lcd_Chr(' ');
-
-	Lcd_BinToDec((uint16_t)PIDcontrol, 4, LCD_CHAR_SIZE_NORM);
 
 //	//Вывод темперетуры DS18B20.
 //	Sensor_1.SENSOR_NUMBER    = 1;
@@ -388,39 +376,6 @@ void Task_Temperature_Display(void){
 //*******************************************************************************************
 //*******************************************************************************************
 //*******************************************************************************************
-void Task_LcdUpdate(void){
-
-	Time_Calculation(mScounter);
-	//Выбор сраниц отображения Енкодером.
-	static uint16_t encoder = 0;
-	Encoder_IncDecParam(&Encoder, &encoder, 1, 0, 2);
-	switch(encoder){
-		//--------------------
-		case 0:
-			//RTOS_SetTask(Task_STM32_Master_Read,   5,  0);
-			RTOS_SetTask(Task_Temperature_Display, 5, 0);
-		break;
-		//--------------------
-		case 1:
-			//RTOS_SetTask(Task_DS2782,	  	  5,  0);
-			RTOS_SetTask(Task_DS2782_Display, 5, 0);
-		break;
-		//--------------------
-		default:
-			Lcd_ClearVideoBuffer();
-			Lcd_SetCursor(1, 1);
-			Lcd_Print(" EMPTY PAGE ");
-		break;
-		//--------------------
-	}
-
-//	RTOS_SetTask(Task_STM32_Master_Read, 10, 0);
-//	RTOS_SetTask(Task_DS2782,	  	     15, 0);
-	//Обновление изображения на экране.
-	//Очистка видеобуфера производится на каждой странице.
-	Lcd_Update(); //вывод сделан для SSD1306
-}
-//************************************************************
 void Task_UartSend(void){
 
 	//--------------------------------
@@ -509,10 +464,86 @@ PID_Data_t PID;
 void Task_PID(void){
 
 	static int16_t outVal = 0;
-	//-----------------------------
-
+	//--------------------
+	//PID-contoller
 	PIDcontrol = PID_Controller(81, outVal, &PID);
 	outVal     = PIDcontrol;
+	//--------------------
+	Lcd_ClearVideoBuffer();
+	//Шапка
+	Lcd_SetCursor(1, 1);
+	Lcd_Print("_PID_Controller_");
+	//Вывод времени.
+	Time_Display(1, 2);
+
+
+	Lcd_SetCursor(1, 4);
+	Lcd_Print("Kp=");
+	Lcd_BinToDec(PID.P_Factor, 6, LCD_CHAR_SIZE_NORM);
+
+
+	Lcd_SetCursor(1, 5);
+	Lcd_Print("Ki=");
+	Lcd_BinToDec(PID.I_Factor, 6, LCD_CHAR_SIZE_NORM);
+
+
+	Lcd_SetCursor(1, 6);
+	Lcd_Print("Kd=");
+	Lcd_BinToDec(PID.D_Factor, 6, LCD_CHAR_SIZE_NORM);
+
+
+	//Выходное значени PID-контроллера
+	Lcd_SetCursor(1, 8);
+	Lcd_Print("PID_Out=");
+
+	if(PIDcontrol < 0)
+	{
+		PIDcontrol = (PIDcontrol ^ 0xFFFF) + 1;//Уберем знак.
+		Lcd_Chr('-');
+	}
+	else Lcd_Chr(' ');
+
+	Lcd_BinToDec((uint16_t)PIDcontrol, 4, LCD_CHAR_SIZE_NORM);
+}
+//*******************************************************************************************
+//*******************************************************************************************
+//*******************************************************************************************
+void Task_LcdUpdate(void){
+
+	Time_Calculation(mScounter);
+	//Выбор сраниц отображения Енкодером.
+	static uint16_t encoder = 0;
+	Encoder_IncDecParam(&Encoder, &encoder, 1, 0, 3);
+	switch(encoder){
+		//--------------------
+		case 0:
+			//RTOS_SetTask(Task_STM32_Master_Read,   5,  0);
+			RTOS_SetTask(Task_Temperature_Display, 5, 0);
+		break;
+		//--------------------
+		case 1:
+			//RTOS_SetTask(Task_DS2782,	  	  5,  0);
+			RTOS_SetTask(Task_DS2782_Display, 5, 0);
+		break;
+		//--------------------
+		case 2:
+			//RTOS_SetTask(Task_DS2782,	  	  5,  0);
+			RTOS_SetTask(Task_PID, 5, 0);
+		break;
+		//--------------------
+		default:
+			Lcd_ClearVideoBuffer();
+			Lcd_SetCursor(1, 1);
+			Lcd_Print(" EMPTY PAGE ");
+		break;
+		//--------------------
+	}
+
+//	RTOS_SetTask(Task_STM32_Master_Read, 10, 0);
+	RTOS_SetTask(Task_DS2782,	  	     15, 0);
+	//Обновление изображения на экране.
+	//Очистка видеобуфера производится на каждой странице.
+	Lcd_Update(); //вывод сделан для SSD1306
 }
 //*******************************************************************************************
 //*******************************************************************************************
@@ -534,9 +565,9 @@ int main(void){
 	//***********************************************
 	//Инициализация Энкодера.
 	Encoder.GPIO_PORT_A 	 = GPIOC;
-	Encoder.GPIO_PIN_A   	 = 12;
+	Encoder.GPIO_PIN_A   	 = 11;
 	Encoder.GPIO_PORT_B 	 = GPIOC;
-	Encoder.GPIO_PIN_B  	 = 11;
+	Encoder.GPIO_PIN_B  	 = 12;
 	Encoder.GPIO_PORT_BUTTON = GPIOC;
 	Encoder.GPIO_PIN_BUTTON  = 10;
 	Encoder_Init(&Encoder);
@@ -572,7 +603,7 @@ int main(void){
 	//RTOS_SetTask(Task_GPS, 			0, 500);
 
 //	RTOS_SetTask(Task_UartSend, 0, 1000);
-	RTOS_SetTask(Task_PID,      0, 500);
+//	RTOS_SetTask(Task_PID,      0, 500);
 	//***********************************************
 	__enable_irq();
 	//**************************************************************

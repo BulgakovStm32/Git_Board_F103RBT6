@@ -371,35 +371,45 @@ void Lcd_Image(const uint8_t *imageData){
     }
 }
 //*****************************************************************************
-uint8_t Lcd_BinToDec(uint16_t var, uint8_t num, uint8_t charSize){
+//
+uint8_t Lcd_BinToDec(uint32_t var, uint8_t num, uint8_t charSize){
 
-	uint8_t DecArray[5];
+	uint8_t DecArray[9];
 	uint8_t	temp;
 	//--------------------
-	if((var <= 0xFFFF) && (num <= 5))
-		{
-		  DecArray[4] = (uint8_t)(var / 10000);
-		  var %= 10000;
+	DecArray[8] = (uint8_t)(var / 100000000);
+	var %= 100000000;
 
-		  DecArray[3] = (uint8_t)(var / 1000);
-		  var %= 1000;
+	DecArray[7] = (uint8_t)(var / 10000000);
+	var %= 10000000;
 
-		  DecArray[2] = (uint8_t)(var / 100);
-		  var %= 100;
+	DecArray[6] = (uint8_t)(var / 1000000);
+	var %= 1000000;
 
-		  DecArray[1] = (uint8_t)(var / 10);
-		  DecArray[0] = (uint8_t)(var % 10);
-		  //--------------------
-		  //Вывод на дисплей
-		  for(uint8_t i=0; i < num; i++)
-			{
-			  temp = 0x30 + DecArray[(num - 1) - i];
+	DecArray[5] = (uint8_t)(var / 100000);
+	var %= 100000;
 
-				   if(charSize == LCD_CHAR_SIZE_BIG) Lcd_ChrBig(temp);
-			  else if(charSize == LCD_CHAR_SIZE_BOLD)Lcd_ChrBold(temp);
-			  else					     			 Lcd_Chr(temp);
-			}
-		}
+	DecArray[4] = (uint8_t)(var / 10000);
+	var %= 10000;
+
+	DecArray[3] = (uint8_t)(var / 1000);
+	var %= 1000;
+
+	DecArray[2] = (uint8_t)(var / 100);
+	var %= 100;
+
+	DecArray[1] = (uint8_t)(var / 10);
+	DecArray[0] = (uint8_t)(var % 10);
+	//--------------------
+	//Вывод на дисплей
+	for(uint32_t i=0; i < num; i++)
+	{
+	  temp = 0x30 + DecArray[(num - 1) - i];
+		   if(charSize == LCD_CHAR_SIZE_BIG) Lcd_ChrBig(temp);
+	  else if(charSize == LCD_CHAR_SIZE_BOLD)Lcd_ChrBold(temp);
+	  else					     			 Lcd_Chr(temp);
+	}
+
 	return num+1;
 }
 //*****************************************************************************
