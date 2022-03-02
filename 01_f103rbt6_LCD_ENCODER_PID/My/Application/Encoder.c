@@ -93,13 +93,18 @@ void Encoder_ScanLoop(Encoder_t *encoder){
 	//если равно предыдущему, то выходим
 	//if(currentState == (oldStateButton & 0b00000001)) return;
 
-	//если не равно, то сдвигаем и сохраняем
+	//если не равно предыдущему, то сдвигаем и сохраняем
 	oldStateButton = (oldStateButton << 1) | currentState;
-
 	//сравниваем получившуюся последовательность
 	if(oldStateButton == 0b00000000) encoder->BUTTON_STATE = ENCODER_BUTTON_PRESSED;
 	if(oldStateButton == 0b11111111) encoder->BUTTON_STATE = ENCODER_BUTTON_RELEASED;
 	//--------------------
+	//Обработка длительного нажатия
+//	if((  encoder->BUTTON_STATE == ENCODER_BUTTON_PRESSED) &
+//	   (++encoder->ButtonLongPressCounter >= ENCODER_BUTTON_LONG_PRESS_TIMEOUT))
+//	{
+//
+//	}
 }
 //**********************************************************
 /**

@@ -508,6 +508,18 @@ void Task_PID(void){
 //*******************************************************************************************
 //*******************************************************************************************
 //*******************************************************************************************
+#define AT24C08_ADDR (0b1010000 << 1)
+#define AT24C08_I2C	 I2C1
+
+static uint8_t At24c08_Buf[32] = {0};
+//************************************************************
+void Task_AT24C08(void){
+
+	I2C_Read(AT24C08_I2C, AT24C08_ADDR, 0, At24c08_Buf, 1);
+}
+//*******************************************************************************************
+//*******************************************************************************************
+//*******************************************************************************************
 void Task_LcdUpdate(void){
 
 	Time_Calculation(mScounter);
@@ -517,17 +529,17 @@ void Task_LcdUpdate(void){
 	switch(encoder){
 		//--------------------
 		case 0:
-			//RTOS_SetTask(Task_STM32_Master_Read,   5,  0);
+			//RTOS_SetTask(Task_STM32_Master_Read, 5, 0);
 			RTOS_SetTask(Task_Temperature_Display, 5, 0);
 		break;
 		//--------------------
 		case 1:
-			//RTOS_SetTask(Task_DS2782,	  	  5,  0);
+			//RTOS_SetTask(Task_DS2782, 5, 0);
 			RTOS_SetTask(Task_DS2782_Display, 5, 0);
 		break;
 		//--------------------
 		case 2:
-			//RTOS_SetTask(Task_DS2782,	  	  5,  0);
+			//RTOS_SetTask(Task_DS2782, 5, 0);
 			RTOS_SetTask(Task_PID, 5, 0);
 		break;
 		//--------------------
@@ -541,6 +553,8 @@ void Task_LcdUpdate(void){
 
 //	RTOS_SetTask(Task_STM32_Master_Read, 10, 0);
 	RTOS_SetTask(Task_DS2782,	  	     15, 0);
+
+
 	//Обновление изображения на экране.
 	//Очистка видеобуфера производится на каждой странице.
 	Lcd_Update(); //вывод сделан для SSD1306
@@ -594,7 +608,8 @@ int main(void){
 	//***********************************************
 	//Ини-я диспетчера.
 	RTOS_Init();
-	RTOS_SetTask(Task_LcdUpdate, 		  0, 20);
+	RTOS_SetTask(Task_LcdUpdate, 0, 20);
+
 	//RTOS_SetTask(Task_STM32_Master_Read,  0, 500);
 	//RTOS_SetTask(Task_STM32_Master_Write, 0, 500);
 
@@ -603,6 +618,7 @@ int main(void){
 
 //	RTOS_SetTask(Task_UartSend, 0, 1000);
 //	RTOS_SetTask(Task_PID,      0, 500);
+	RTOS_SetTask(Task_AT24C08,  0, 500);
 	//***********************************************
 	__enable_irq();
 	//**************************************************************
