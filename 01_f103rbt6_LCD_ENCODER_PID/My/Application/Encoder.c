@@ -69,18 +69,18 @@ void Encoder_ScanLoop(Encoder_t *encoder){
 	//Определение состояния энкодера.
 	static uint8_t oldStateEncoder = 0; //хранит последовательность состояний энкодера
 
-	//проверяем состояние выводов микроконтроллера
+	//Считывание состояний выводов микроконтроллера
 	if(encoder->GPIO_PORT_A->IDR & pinA) currentState |= 1<<0;
 	if(encoder->GPIO_PORT_B->IDR & pinB) currentState |= 1<<1;
 
 	//если равно предыдущему, то выходим
-	if(currentState != (oldStateEncoder & 0b00000011))
+	if(currentState != (oldStateEncoder & 0b11))
 	{
-		//если не равно, то сдвигаем и сохраняем
-		oldStateEncoder = (oldStateEncoder << 2) | currentState;
 		//сравниваем получившуюся последовательность
 		if(oldStateEncoder == 0b11100001) encoder->ENCODER_STATE = ENCODER_TURN_RIGHT;
 		if(oldStateEncoder == 0b11010010) encoder->ENCODER_STATE = ENCODER_TURN_LEFT;
+		//сдвигаем и сохраняем
+		oldStateEncoder = (oldStateEncoder << 2) | currentState;
 	}
 	//--------------------
 	//Опрос кнопки энкодера.
@@ -93,11 +93,11 @@ void Encoder_ScanLoop(Encoder_t *encoder){
 	//если равно предыдущему, то выходим
 	//if(currentState == (oldStateButton & 0b00000001)) return;
 
-	//если не равно предыдущему, то сдвигаем и сохраняем
-	oldStateButton = (oldStateButton << 1) | currentState;
 	//сравниваем получившуюся последовательность
 	if(oldStateButton == 0b00000000) encoder->BUTTON_STATE = ENCODER_BUTTON_PRESSED;
 	if(oldStateButton == 0b11111111) encoder->BUTTON_STATE = ENCODER_BUTTON_RELEASED;
+	//сдвигаем и сохраняем
+	oldStateButton = (oldStateButton << 1) | currentState;
 	//--------------------
 	//Обработка длительного нажатия
 //	if((  encoder->BUTTON_STATE == ENCODER_BUTTON_PRESSED) &

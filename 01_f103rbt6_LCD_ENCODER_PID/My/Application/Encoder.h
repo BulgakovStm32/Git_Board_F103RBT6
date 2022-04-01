@@ -51,9 +51,9 @@ typedef struct{
 	uint32_t	  		 ButtonLongPressCounter; //Счетчик длительного нажатия
 	EncoderButtonState_t ButtonState;
 	//------------
-	uint8_t	  	ENCODER_STATE;
-	uint8_t		BUTTON_STATE;
-	uint32_t	ENCODER_NUMBER;
+	uint32_t	  	ENCODER_STATE;
+	uint8_t			BUTTON_STATE;
+	uint32_t		ENCODER_NUMBER;
 }Encoder_t;
 //*******************************************************************************************
 //*******************************************************************************************
