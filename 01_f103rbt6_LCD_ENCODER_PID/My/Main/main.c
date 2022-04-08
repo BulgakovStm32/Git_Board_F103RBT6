@@ -586,7 +586,21 @@ int main(void){
 	Encoder_Init(&Encoder);
 	//***********************************************
 	//Инициализация	ШИМ
-	//TIM3_InitForPWM();
+
+	//это то что мы хотим - количество оборотов в минуту на валу ШД или редуктора.
+	#define RPM							10
+
+	#define GEAR_RATIO					120 //передаточное число редуктора. Если редуктора нет то GEAR_RATIO делаем 1.
+	#define NUM_STEPS_PER_REVOLUTION	200 //Количество шаго на один оборот вала ШД. Берем в даташите на ШД.
+	#define MICRO_STEPS					16  //Количество микрошагов. Может быть: 2, 4, 8, 16, 32 и т.д.
+	#define N_STEP						(NUM_STEPS_PER_REVOLUTION*MICRO_STEPS*GEAR_RATIO)
+	#define STEP_FREQ 					((RPM*N_STEP)/60)			//Частота (в Гц) тактирования драйвера ШД (линия STEP),
+	#define	T_FREQ						500000U						//Частота тактирования таймера в Гц.
+	#define T_ARR 						((T_FREQ/STEP_FREQ)-1) 		//Значение регистра сравнения
+
+	TIM3_InitForPWM();
+	TIM3->ARR  = (uint16_t)T_ARR;
+	TIM3->CCR1 = 2; //Задаем коэф-т заполнения.
 	//***********************************************
 	//Ини-я DS2782.
 	DS2782_Init(DS2782_I2C, I2C_GPIO_NOREMAP);

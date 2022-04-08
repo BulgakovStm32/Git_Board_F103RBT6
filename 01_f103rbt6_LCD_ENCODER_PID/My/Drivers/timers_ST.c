@@ -19,9 +19,9 @@ void TIM3_InitForPWM(void){
 
 	//Прескаллер.
 	//APB1_CLK = 36MHz, TIM3_CLK = APB1_CLK * 2 = 72MHz.
-	TIM3->PSC = (4 - 1);//таймер будет тактироваться с частотой 72МГц/PSC.
+	TIM3->PSC = (144 - 1);//таймер будет тактироваться с частотой 72МГц/PSC.
 	//Auto reload register. - это значение, до которого будет считать таймер.
-	TIM3->ARR = (100 - 1);
+	//TIM3->ARR = (100 - 1);
 	//Задаем режим работы - PWM mode on OC1
 	TIM3->CCMR1 |= TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | //OC1M:  Output compare 1 mode - 110: PWM mode 1.
 				   TIM_CCMR1_OC1PE;						 //OC1PE: Output compare 1 preload enable. 1: Preload register on TIMx_CCR1 enabled.
