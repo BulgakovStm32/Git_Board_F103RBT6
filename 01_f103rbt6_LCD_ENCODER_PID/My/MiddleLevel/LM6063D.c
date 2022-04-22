@@ -98,19 +98,42 @@ void Lm6063LcdInit(void){
 //Copies the LCD cache into the device RAM
 void Lm6063LcdUpdate(uint8_t *displayBuf){
   
-  uint8_t  i, j;
-  //--------------------
-	Lm6063LcdSendByte(0x40, LM6063_CMD);	//Set Display Start Line = com0
-	for(i = 0; i < 8; i++)
-    {
-      Lm6063LcdSendByte(0xB0|i, LM6063_CMD); //Set Page Address as ComTable
-      Lm6063LcdSendByte(0x10,   LM6063_CMD); //Set Column Address = 0
-      Lm6063LcdSendByte(0x04,   LM6063_CMD); //Colum from 4 -> 132 auto add
-      for(j = 0; j < 128; j++)
-        {
-          Lm6063LcdSendByte(*(displayBuf++), LM6063_DATA);
-        }
-    }	
+//  uint8_t  i, j;
+//  //--------------------
+//	Lm6063LcdSendByte(0x40, LM6063_CMD);	//Set Display Start Line = com0
+//	for(i = 0; i < 8; i++)
+//    {
+//      Lm6063LcdSendByte(0xB0|i, LM6063_CMD); //Set Page Address as ComTable
+//      Lm6063LcdSendByte(0x10,   LM6063_CMD); //Set Column Address = 0
+//      Lm6063LcdSendByte(0x04,   LM6063_CMD); //Colum from 4 -> 132 auto add
+//      for(j = 0; j < 128; j++)
+//        {
+//          Lm6063LcdSendByte(*(displayBuf++), LM6063_DATA);
+//        }
+//    }
+
+
+	//Передача данных для дисплея за раз передется 128 байта(~1.5мС)
+	static uint32_t count    = 0;
+	static uint32_t bufIndex = 0;
+	uint32_t j;
+	//--------------------
+	if(count == 0) Lm6063LcdSendByte(0x40, LM6063_CMD);	//Set Display Start Line = com0
+
+	Lm6063LcdSendByte(0xB0|count, LM6063_CMD); //Set Page Address as ComTable
+	Lm6063LcdSendByte(0x10,   	  LM6063_CMD); //Set Column Address = 0
+	Lm6063LcdSendByte(0x04,   	  LM6063_CMD); //Colum from 4 -> 132 auto add
+	for(j = 0; j < 128; j++)
+	{
+	  Lm6063LcdSendByte(*(displayBuf+bufIndex), LM6063_DATA);
+	  bufIndex++;
+	}
+
+	if(++count >= 8)
+	{
+		count    = 0;
+		bufIndex = 0;
+	}
 }
 //-----------------------------------------------------------------------------
 

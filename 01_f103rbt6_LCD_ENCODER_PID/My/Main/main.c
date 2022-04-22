@@ -522,9 +522,11 @@ void Task_AT24C08(void){
 //*******************************************************************************************
 void Task_LcdUpdate(void){
 
+	LedPC13On();
+
 	Time_Calculation(mScounter);
 	//Выбор сраниц отображения Енкодером.
-	static uint16_t encoder = 0;
+	static uint32_t encoder = 0;
 	Encoder_IncDecParam(&Encoder, &encoder, 1, 0, 3);
 	switch(encoder){
 		//--------------------
@@ -552,12 +554,14 @@ void Task_LcdUpdate(void){
 	}
 
 //	RTOS_SetTask(Task_STM32_Master_Read, 10, 0);
-	RTOS_SetTask(Task_DS2782,	  	     15, 0);
+//	RTOS_SetTask(Task_DS2782,	  	     15, 0);
 
 
 	//Обновление изображения на экране.
 	//Очистка видеобуфера производится на каждой странице.
-	Lcd_Update(); //вывод сделан для SSD1306
+	//LedPC13On();
+	Lcd_Update(); //вывод сделан для  Lm6063.
+	LedPC13Off();
 }
 //*******************************************************************************************
 //*******************************************************************************************
@@ -649,7 +653,6 @@ int main(void){
 void SysTick_Handler(void){
 
 	mScounter++;
-
 	RTOS_TimerServiceLoop();
 	msDelay_Loop();
 	Blink_Loop();

@@ -69,12 +69,10 @@ void Encoder_ScanLoop(Encoder_t *encoder){
 	//Определение состояния энкодера.
 	static uint8_t oldStateEncoder = 0; //хранит последовательность состояний энкодера
 
-	//Считывание состояний выводов микроконтроллера
-	if(encoder->GPIO_PORT_A->IDR & pinA) currentState |= 1<<0;
+	if(encoder->GPIO_PORT_A->IDR & pinA) currentState |= 1<<0;//Считывание состояний выводов микроконтроллера
 	if(encoder->GPIO_PORT_B->IDR & pinB) currentState |= 1<<1;
 
-	//если равно предыдущему, то выходим
-	if(currentState != (oldStateEncoder & 0b11))
+	if(currentState != (oldStateEncoder & 0b11))//если равно предыдущему, то выходим
 	{
 		//сравниваем получившуюся последовательность
 		if(oldStateEncoder == 0b11100001) encoder->ENCODER_STATE = ENCODER_TURN_RIGHT;
@@ -115,7 +113,7 @@ void Encoder_ScanLoop(Encoder_t *encoder){
  *            max  - максимальное значение до которого будет увеличиваться значение переменной.
  * @Out_param:
  */
-void Encoder_IncDecParam(Encoder_t *encoder, uint16_t *parameter, uint32_t step, uint32_t min, uint32_t max){
+void Encoder_IncDecParam(Encoder_t *encoder, uint32_t *parameter, uint32_t step, uint32_t min, uint32_t max){
 
 	//--------------------
 	switch(encoder->ENCODER_STATE){
