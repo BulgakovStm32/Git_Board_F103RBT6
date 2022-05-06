@@ -37,6 +37,22 @@ static uint8_t  I2CRxBuf[32] = {0};
 static uint32_t ButtonPressCount = 0;
 
 static int16_t	PIDcontrol = 0;
+
+
+
+//это то что мы хотим - количество оборотов в минуту на валу ШД или редуктора.
+#define RPM_MIN						2		//минимальная скорость вращения мотора
+#define RPM							RPM_MIN //10
+
+#define GEAR_RATIO					120 //передаточное число редуктора. Если редуктора нет то GEAR_RATIO делаем 1.
+#define NUM_STEPS_PER_REVOLUTION	200 //Количество шаго на один оборот вала ШД. Берем в даташите на ШД.
+#define MICRO_STEPS					1  //Количество микрошагов. Может быть: 1, 2, 4, 8, 16, 32 и т.д.
+#define N_STEP						(NUM_STEPS_PER_REVOLUTION*MICRO_STEPS*GEAR_RATIO)
+#define STEP_FREQ 					((RPM*N_STEP)/60)			//Частота (в Гц) тактирования драйвера ШД (линия STEP),
+#define	T_FREQ						1000000U//500000U						//Частота тактирования таймера в Гц.
+#define T_ARR 						((T_FREQ/STEP_FREQ)-1) 		//Значение регистра сравнения
+
+static uint32_t motorSpeedCnt = T_ARR;
 //*******************************************************************************************
 //*******************************************************************************************
 //*******************************************************************************************
@@ -353,7 +369,8 @@ void Task_Temperature_Display(void){
 	IncrementOnEachPass(&ButtonPressCount, Encoder.BUTTON_STATE);
 	Lcd_SetCursor(1, 7);
 	Lcd_Print("Button=");
-	Lcd_BinToDec((uint16_t)ButtonPressCount, 4, LCD_CHAR_SIZE_NORM);
+	//Lcd_BinToDec((uint16_t)ButtonPressCount, 4, LCD_CHAR_SIZE_NORM);
+	Lcd_BinToDec((uint16_t)motorSpeedCnt, 4, LCD_CHAR_SIZE_NORM);
 
 
 //	//Вывод темперетуры DS18B20.
@@ -527,7 +544,26 @@ void Task_LcdUpdate(void){
 	Time_Calculation(mScounter);
 	//Выбор сраниц отображения Енкодером.
 	static uint32_t encoder = 0;
-	Encoder_IncDecParam(&Encoder, &encoder, 1, 0, 3);
+	//Encoder_IncDecParam(&Encoder, &encoder, 1, 0, 3);
+
+
+	//***********************************
+	//Отладка!!!
+	//Плавное увеличение скорости мотора.
+	//static uint32_t motorSpeedCnt = T_ARR;
+	Encoder_IncDecParam(&Encoder, &motorSpeedCnt, 1, 22, (uint32_t)T_ARR);
+	TIM3->ARR = (uint16_t)motorSpeedCnt;
+
+//	if(++delayCnt >= 50)
+//	{
+//		delayCnt = 0;
+//		motorSpeedCnt -= 1;
+//		if(motorSpeedCnt <= 0) motorSpeedCnt = T_ARR;
+//		TIM3->ARR = (uint16_t)motorSpeedCnt;
+//	}
+	//***********************************
+
+
 	switch(encoder){
 		//--------------------
 		case 0:
@@ -591,20 +627,21 @@ int main(void){
 	//***********************************************
 	//Инициализация	ШИМ
 
-	//это то что мы хотим - количество оборотов в минуту на валу ШД или редуктора.
-	#define RPM							10
-
-	#define GEAR_RATIO					120 //передаточное число редуктора. Если редуктора нет то GEAR_RATIO делаем 1.
-	#define NUM_STEPS_PER_REVOLUTION	200 //Количество шаго на один оборот вала ШД. Берем в даташите на ШД.
-	#define MICRO_STEPS					16  //Количество микрошагов. Может быть: 2, 4, 8, 16, 32 и т.д.
-	#define N_STEP						(NUM_STEPS_PER_REVOLUTION*MICRO_STEPS*GEAR_RATIO)
-	#define STEP_FREQ 					((RPM*N_STEP)/60)			//Частота (в Гц) тактирования драйвера ШД (линия STEP),
-	#define	T_FREQ						500000U						//Частота тактирования таймера в Гц.
-	#define T_ARR 						((T_FREQ/STEP_FREQ)-1) 		//Значение регистра сравнения
+//	//это то что мы хотим - количество оборотов в минуту на валу ШД или редуктора.
+//	#define RPM_MIN						2		//минимальная скорость вращения мотора
+//	#define RPM							RPM_MIN //10
+//
+//	#define GEAR_RATIO					120 //передаточное число редуктора. Если редуктора нет то GEAR_RATIO делаем 1.
+//	#define NUM_STEPS_PER_REVOLUTION	200 //Количество шаго на один оборот вала ШД. Берем в даташите на ШД.
+//	#define MICRO_STEPS					2  //Количество микрошагов. Может быть: 1, 2, 4, 8, 16, 32 и т.д.
+//	#define N_STEP						(NUM_STEPS_PER_REVOLUTION*MICRO_STEPS*GEAR_RATIO)
+//	#define STEP_FREQ 					((RPM*N_STEP)/60)			//Частота (в Гц) тактирования драйвера ШД (линия STEP),
+//	#define	T_FREQ						500000U						//Частота тактирования таймера в Гц.
+//	#define T_ARR 						((T_FREQ/STEP_FREQ)-1) 		//Значение регистра сравнения
 
 	TIM3_InitForPWM();
-	TIM3->ARR  = (uint16_t)T_ARR;
-	TIM3->CCR1 = 2; //Задаем коэф-т заполнения.
+	TIM3->CCR1 = 2; 			 //Задаем коэф-т заполнения.
+	TIM3->ARR  = (uint16_t)T_ARR;//задаем минимальную скорость вращения мотора
 	//***********************************************
 	//Ини-я DS2782.
 	DS2782_Init(DS2782_I2C, I2C_GPIO_NOREMAP);
@@ -652,6 +689,20 @@ int main(void){
 //Прерывание каждую милисекунду.
 void SysTick_Handler(void){
 
+	//***********************************
+	//Отладка!!!
+	//Плавное увеличение скорости мотора.
+	static uint32_t delayCnt = 0;
+	static int32_t motorSpeedCnt = T_ARR;
+
+//	if(++delayCnt >= 50)
+//	{
+//		delayCnt = 0;
+//		motorSpeedCnt -= 1;
+//		if(motorSpeedCnt <= 0) motorSpeedCnt = T_ARR;
+//		TIM3->ARR = (uint16_t)motorSpeedCnt;
+//	}
+	//***********************************
 	mScounter++;
 	RTOS_TimerServiceLoop();
 	msDelay_Loop();
