@@ -19,6 +19,18 @@
 //*******************************************************************************************
 //*******************************************************************************************
 //*******************************************************************************************
+static uint32_t spi_LongWait(SPI_TypeDef *spi, uint32_t flag){
+
+	uint32_t spiWaitCount = 0;
+	//--------------------
+	while(spi->SR & flag)
+	{
+		if(++spiWaitCount >= SPI_WAIT) return 1;
+	}
+	return 0;
+}
+//*******************************************************************************************
+//*******************************************************************************************
 void SPI_Init(SPI_TypeDef *spi){
 
 	if(spi == SPI1)
@@ -65,8 +77,8 @@ void SPI_Init(SPI_TypeDef *spi){
 				SPI_CR1_CPOL |
 				//SPI_CR1_DFF  | // 16 бит данных.
 				SPI_CR1_SSI  |   //обеспечить высокий уровень программного NSS
-				SPI_CR1_SSM  |   //разрешить программное формирование NSS
-				SPI_CR1_SPE   ); //разрешить работу модуля SPI
+				SPI_CR1_SSM  );  //разрешить программное формирование NSS
+				//SPI_CR1_SPE   ); //разрешить работу модуля SPI
 	//--------------------
 //	SPI2->CR1    |= SPI_CR1_LSBFIRST;
 //	SPI2->CR1    |= SPI_CR1_DFF;				// 16 бит данных.
@@ -80,34 +92,62 @@ void SPI_Init(SPI_TypeDef *spi){
 //	NVIC_EnableIRQ (SPI2_IRQn);
 }
 //************************************************************
+void SPI_Enable(SPI_TypeDef *spi){
+
+	spi->CR1 |= SPI_CR1_SPE;
+}
+//************************************************************
+void SPI_Disable(SPI_TypeDef *spi){
+
+	spi->CR1 &= ~(SPI_CR1_SPE);
+}
+//************************************************************
 //Передача данных(8 бит) в SPI.
 uint8_t	SPI_TxRxByte(SPI_TypeDef *spi, uint8_t byte){
 
-  volatile uint32_t spiWaitCount = 0;
-  //--------------------
+	volatile uint32_t spiWaitCount = 0;
+	//--------------------
 	//Если SPI не проинециализирован ,то выходим.
 	//if(!(Spi1StatusReg & SPI_INIT)) return 0;
 	//Ожидание освобождения передающего буфера.
 	while(!(spi->SR & SPI_SR_TXE))
-	{
-		if(++spiWaitCount > SPI_WAIT) return 0;
-	}
-
+	{if(++spiWaitCount > SPI_WAIT) return 0;}
 	spiWaitCount = 0;
+
 	spi->DR = byte;
 
 	while(spi->SR & SPI_SR_BSY)
-	{
-		if(++spiWaitCount > SPI_WAIT) return 0;
-	}
+	{if(++spiWaitCount > SPI_WAIT) return 0;}
 	//--------------------
 	return (uint8_t)spi->DR;
 }
 //************************************************************
+void SPI_BiDirMode(SPI_TypeDef *spi, uint8_t mode){
 
+	spi->CR1 &= ~(SPI_CR1_SPE);//Останов модуля SPI2.
+	if(mode == SPI_TX_ONLY_MODE) spi->CR1 |=   SPI_CR1_BIDIOE; //Output enabled (transmit-only mode).
+	else                         spi->CR1 &= ~(SPI_CR1_BIDIOE);//Output disabled(receive-only mode).
+	spi->CR1 |=   SPI_CR1_SPE; //Запуск модуля SPI2.
+}
+//************************************************************
+uint8_t SPI_RxData(SPI_TypeDef *spi){
 
+//  volatile uint32_t SpiWaitCount = 0;
+  //--------------------
+//  while(spi->SR & SPI_SR_BSY)
+//  {if(++SpiWaitCount > SPI_WAIT)return 0;}
+//  SpiWaitCount = 0;
+  if(spi_LongWait(spi, SPI_SR_BSY)) return 0;
 
+  spi->DR = 0xFF;
 
+//  while(!(spi->SR & SPI_SR_RXNE))
+//  {if(++SpiWaitCount > SPI_WAIT)return 0;}
+  if(spi_LongWait(spi, !SPI_SR_RXNE)) return 0;
+
+  return spi->DR;
+}
+//************************************************************
 
 
 
