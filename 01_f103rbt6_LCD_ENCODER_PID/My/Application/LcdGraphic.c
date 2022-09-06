@@ -23,16 +23,15 @@ static void ClearTextBuf(void){
 void Lcd_Init(void){
 
 	Lm6063LcdInit();
-//	Lcd_Clear();
-//	Lcd_Update();
+	//SSD1306_Init(I2C1, SSD1306_128x32, 0);
 }
 //*****************************************************************************
 //Вывод буфера на дисплей.
 void Lcd_Update(void){
 
 	Lm6063LcdUpdate(lcdVideoBuffer);
-//	Lcd_TIC32_SendData(LcdCache);
-//	SSD1306_UpdateScreen(lcdVideoBuffer, LCD_VIDEO_BUFFER_SIZE);
+	//Lcd_TIC32_SendData(LcdCache);
+	//SSD1306_UpdateScreen(lcdVideoBuffer, LCD_VIDEO_BUFFER_SIZE);
 }
 //*****************************************************************************
 uint8_t* Lcd_pVideoBuffer(void){

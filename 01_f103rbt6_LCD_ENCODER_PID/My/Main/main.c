@@ -14,6 +14,7 @@
 
 #include "main.h"
 
+
 //*******************************************************************************************
 //*******************************************************************************************
 typedef struct{
@@ -23,8 +24,8 @@ typedef struct{
 }Time_t;
 
 static Time_t   Time;
-static uint32_t mScounter = 0;
 //---------------------------
+static uint32_t SW = 0;
 DS18B20_t Sensor_1;
 DS18B20_t Sensor_2;
 DS18B20_t Sensor_3;
@@ -166,11 +167,11 @@ void Task_DS2782_Display(void){
 
 	//Шапка
 	Lcd_SetCursor(1, 1);
-	Lcd_Print("_DS2782_");
+	Lcd_Print("<DS2782>");
 	//Вывод времени.
 	Time_Display(1, 2);
 	//Вывод ошибок обvена по I2C.
-	Lcd_SetCursor(10, 1);
+	Lcd_SetCursor(11, 1);
 	Lcd_Print("I2CNAC=");
 	Lcd_BinToDec(I2C_GetNacCount(DS2782_I2C), 4, LCD_CHAR_SIZE_NORM);
 
@@ -233,26 +234,10 @@ void Task_DS2782_Display(void){
 	//----------------------------------------------
 
 	Lcd_SetCursor(1, 8);
-	Lcd_Print("Bat_Iacc=");
+	Lcd_Print("Bat_Iacc= ");
 	Lcd_BinToDec(DS2782.AccumulatedCurrent, 5, LCD_CHAR_SIZE_NORM);
 	Lcd_Print("uAh");
-
 	//----------------------------------------------
-	//Вывод значения встроенного АЦП.
-
-	//Измерение напряжения АКБ.
-//	Lcd_SetCursor(14, 1);
-//	Lcd_Print("BAT:");
-//	Lcd_BinToDec(AdcMeas.Bat_V, 4, LCD_CHAR_SIZE_NORM);
-//if(I2C_DMA_State() == I2C_DMA_READY)
-//	//Измерение напряжения внешнего ИОН.
-//	Lcd_SetCursor(1, 8);
-//	Lcd_Print("ADC=");
-//	Lcd_BinToDec(Adc_GetMeas(ADC_CH_VREF), 5, LCD_CHAR_SIZE_NORM);
-//
-//	//Расчет напряжения питания через внешний ИОН.
-//	Lcd_Print(" Vdd=");
-//	Lcd_BinToDec(AdcMeas.Vdd_V, 5, LCD_CHAR_SIZE_NORM);
 }
 //*******************************************************************************************
 //*******************************************************************************************
@@ -319,25 +304,27 @@ void Task_STM32_Master_Read(void){
 //*******************************************************************************************
 //*******************************************************************************************
 //*******************************************************************************************
-//void Task_Temperature_Read(void){
-//
-//	TemperatureSens_ReadTemperature(&Sensor_1);
-//	TemperatureSens_ReadTemperature(&Sensor_2);
-//	TemperatureSens_ReadTemperature(&Sensor_3);
-//}
+void Task_Temperature_Read(void){
+
+	TemperatureSens_ReadTemperature(&Sensor_1);
+	TemperatureSens_ReadTemperature(&Sensor_2);
+	TemperatureSens_ReadTemperature(&Sensor_3);
+}
 //************************************************************
 void Task_Temperature_Display(void){
 
-	Lcd_ClearVideoBuffer();
+	Lcd_ClearVideoBuffer();//Очистка видеобуфера.
 
 	//Шапка
 	Lcd_SetCursor(1, 1);
-	Lcd_Print("_MCUv7_");
+	Lcd_Print("<MCUv7Dbg>");
+
 	//Вывод времени.
 	Time_Display(1, 2);
+
 	//Вывод ошибок обvена по I2C.
-	Lcd_SetCursor(10, 1);
-	Lcd_Print("I2CErr=");
+	Lcd_SetCursor(11, 1);
+	Lcd_Print("I2CNAC=");
 	Lcd_BinToDec(I2C_GetNacCount(STM32_SLAVE_I2C), 4, LCD_CHAR_SIZE_NORM);
 
 	//Енкодер.
@@ -349,29 +336,17 @@ void Task_Temperature_Display(void){
 //	Lcd_Print("Encoder=");
 //	Lcd_BinToDec(tempReg, 4, LCD_CHAR_SIZE_NORM);
 
+
+	//Вывод темперетуры DS18B20.
+	Temperature_Display(&Sensor_1, 1, 5);
+	Temperature_Display(&Sensor_2, 1, 6);
+	Temperature_Display(&Sensor_3, 1, 7);
+
 	//Кнопка энкодера.
 	IncrementOnEachPass(&ButtonPressCount, Encoder.BUTTON_STATE);
-	Lcd_SetCursor(1, 7);
+	Lcd_SetCursor(1, 8);
 	Lcd_Print("Button=");
 	Lcd_BinToDec((uint16_t)ButtonPressCount, 4, LCD_CHAR_SIZE_NORM);
-
-
-//	//Вывод темперетуры DS18B20.
-//	Sensor_1.SENSOR_NUMBER    = 1;
-//	Sensor_1.TEMPERATURE_SIGN = I2CRxBuf[0];
-//	Sensor_1.TEMPERATURE  	  = (uint32_t)((I2CRxBuf[1] << 8) | I2CRxBuf[2]);
-//
-//	Sensor_2.SENSOR_NUMBER    = 2;
-//	Sensor_2.TEMPERATURE_SIGN = I2CRxBuf[3];
-//	Sensor_2.TEMPERATURE      = (uint32_t)((I2CRxBuf[4] << 8) | I2CRxBuf[5]);
-//
-//	Sensor_3.SENSOR_NUMBER    = 3;
-//	Sensor_3.TEMPERATURE_SIGN = I2CRxBuf[6];
-//	Sensor_3.TEMPERATURE      = (uint32_t)((I2CRxBuf[7] << 8) | I2CRxBuf[8]);
-
-	Temperature_Display(&Sensor_1, 1, 3);
-	Temperature_Display(&Sensor_2, 1, 4);
-	Temperature_Display(&Sensor_3, 1, 5);
 }
 //*******************************************************************************************
 //*******************************************************************************************
@@ -522,9 +497,9 @@ void Task_AT24C08(void){
 //*******************************************************************************************
 void Task_LcdUpdate(void){
 
-	LedPC13On();
+	LedPC13Toggel();
 
-	Time_Calculation(mScounter);
+	Time_Calculation(RTOS_GetTickCount());
 	//Выбор сраниц отображения Енкодером.
 	static uint32_t encoder = 0;
 	Encoder_IncDecParam(&Encoder, &encoder, 1, 0, 3);
@@ -549,33 +524,29 @@ void Task_LcdUpdate(void){
 			Lcd_ClearVideoBuffer();
 			Lcd_SetCursor(1, 1);
 			Lcd_Print(" EMPTY PAGE ");
+			Lcd_SetCursor(1, 2);
+			Lcd_Print(" SW ");
+			Lcd_BinToDec(SW, 4, LCD_CHAR_SIZE_NORM);
 		break;
 		//--------------------
 	}
-
-//	RTOS_SetTask(Task_STM32_Master_Read, 10, 0);
-//	RTOS_SetTask(Task_DS2782,	  	     15, 0);
-
-
 	//Обновление изображения на экране.
 	//Очистка видеобуфера производится на каждой странице.
-	//LedPC13On();
-	Lcd_Update(); //вывод сделан для  Lm6063.
-	LedPC13Off();
+	Lcd_Update(); //вывод сделан для Lm6063.
 }
 //*******************************************************************************************
 //*******************************************************************************************
 //*******************************************************************************************
 int main(void){
 
+	SW = 1001; //Версия ПО
 	//-----------------------------
-	//Drivers.
+	//Drivers
 	Sys_Init();
 	Gpio_Init();
 	SysTick_Init();
 	microDelay_Init();
 	USART_Init(USART1, USART1_BRR);
-	//Adc_Init();
 
 	microDelay(100000);//Эта задержка нужна для стабилизации напряжения патания.
 					   //Без задержки LCD-дисплей не работает.
@@ -589,22 +560,12 @@ int main(void){
 	Encoder.GPIO_PIN_BUTTON  = 10;
 	Encoder_Init(&Encoder);
 	//***********************************************
-	//Инициализация	ШИМ
+	//Ини-я DS18B20
+	Sensor_1.SENSOR_NUMBER = 1;
 
-	//это то что мы хотим - количество оборотов в минуту на валу ШД или редуктора.
-	#define RPM							10
+	Sensor_2.SENSOR_NUMBER = 2;
 
-	#define GEAR_RATIO					120 //передаточное число редуктора. Если редуктора нет то GEAR_RATIO делаем 1.
-	#define NUM_STEPS_PER_REVOLUTION	200 //Количество шаго на один оборот вала ШД. Берем в даташите на ШД.
-	#define MICRO_STEPS					16  //Количество микрошагов. Может быть: 2, 4, 8, 16, 32 и т.д.
-	#define N_STEP						(NUM_STEPS_PER_REVOLUTION*MICRO_STEPS*GEAR_RATIO)
-	#define STEP_FREQ 					((RPM*N_STEP)/60)			//Частота (в Гц) тактирования драйвера ШД (линия STEP),
-	#define	T_FREQ						500000U						//Частота тактирования таймера в Гц.
-	#define T_ARR 						((T_FREQ/STEP_FREQ)-1) 		//Значение регистра сравнения
-
-	TIM3_InitForPWM();
-	TIM3->ARR  = (uint16_t)T_ARR;
-	TIM3->CCR1 = 2; //Задаем коэф-т заполнения.
+	Sensor_3.SENSOR_NUMBER = 3;
 	//***********************************************
 	//Ини-я DS2782.
 	DS2782_Init(DS2782_I2C, I2C_GPIO_NOREMAP);
@@ -621,22 +582,22 @@ int main(void){
 	I2C_DMA_Init(I2C1, I2C_GPIO_NOREMAP);
 	//***********************************************
 	//Инициализация PID.
-	PID_Init(K_P * SCALING_FACTOR, K_I * SCALING_FACTOR, K_D * SCALING_FACTOR, &PID);
-
+	PID_Init(K_P * SCALING_FACTOR,
+			 K_I * SCALING_FACTOR,
+			 K_D * SCALING_FACTOR,
+			 &PID);
 	//***********************************************
 	//Ини-я диспетчера.
 	RTOS_Init();
-	RTOS_SetTask(Task_LcdUpdate, 0, 20);
+	RTOS_SetTask(Task_LcdUpdate,         0, 25);
+	RTOS_SetTask(Task_Temperature_Read, 50, 1000);
 
-	//RTOS_SetTask(Task_STM32_Master_Read,  0, 500);
-	//RTOS_SetTask(Task_STM32_Master_Write, 0, 500);
-
-	//RTOS_SetTask(Task_Temperature_Read, 0, 1000);
-	//RTOS_SetTask(Task_GPS, 			0, 500);
-
+//	RTOS_SetTask(Task_STM32_Master_Read,  0, 500);
+//	RTOS_SetTask(Task_STM32_Master_Write, 0, 500);
+//	RTOS_SetTask(Task_GPS, 			0, 500);
 //	RTOS_SetTask(Task_UartSend, 0, 1000);
 //	RTOS_SetTask(Task_PID,      0, 500);
-	RTOS_SetTask(Task_AT24C08,  0, 500);
+//	RTOS_SetTask(Task_AT24C08,  0, 500);
 	//***********************************************
 	__enable_irq();
 	//**************************************************************
@@ -652,7 +613,6 @@ int main(void){
 //Прерывание каждую милисекунду.
 void SysTick_Handler(void){
 
-	mScounter++;
 	RTOS_TimerServiceLoop();
 	msDelay_Loop();
 	Blink_Loop();
