@@ -12,15 +12,21 @@
 #include "main.h"
 
 //*******************************************************************************************
-#define SPI_WAIT ((uint32_t)0x5000)
-
 #define SPI_INIT	(1<<0) //SPI проинициализирован.
 
+#define SPI_RX_ONLY_MODE 0 //Output disabled (receive-only mode)
+#define SPI_TX_ONLY_MODE 1 //Output enabled  (transmit-only mode)
+
+#define SPI_WAIT ((uint32_t)0x5000)
 //*******************************************************************************************
 //*******************************************************************************************
 void 	SPI_Init(SPI_TypeDef *spi);
-uint8_t	SPI_TxRxByte(SPI_TypeDef *spi, uint8_t byte);
+void 	SPI_Enable(SPI_TypeDef *spi);
+void 	SPI_Disable(SPI_TypeDef *spi);
+void    SPI_BiDirMode(SPI_TypeDef *spi, uint8_t mode);
 
+uint8_t	SPI_TxRxByte(SPI_TypeDef *spi, uint8_t byte);
+uint8_t SPI_RxData(SPI_TypeDef *spi);
 
 //void     Spi1Init(void);
 //uint8_t	 Spi1TxRxByte(uint8_t byte);
