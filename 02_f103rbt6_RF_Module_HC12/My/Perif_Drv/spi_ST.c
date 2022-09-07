@@ -77,8 +77,8 @@ void SPI_Init(SPI_TypeDef *spi){
 				SPI_CR1_CPOL |
 				//SPI_CR1_DFF  | // 16 бит данных.
 				SPI_CR1_SSI  |   //обеспечить высокий уровень программного NSS
-				SPI_CR1_SSM  |  //разрешить программное формирование NSS
-				SPI_CR1_SPE   ); //разрешить работу модуля SPI
+				SPI_CR1_SSM  );  //разрешить программное формирование NSS
+				//SPI_CR1_SPE   ); //разрешить работу модуля SPI
 	//--------------------
 //	SPI2->CR1    |= SPI_CR1_LSBFIRST;
 //	SPI2->CR1    |= SPI_CR1_DFF;				// 16 бит данных.

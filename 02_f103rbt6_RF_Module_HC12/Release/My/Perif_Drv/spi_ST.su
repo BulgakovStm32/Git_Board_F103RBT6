@@ -1,0 +1,7 @@
+spi_ST.c:34:6:SPI_Init	0	static
+spi_ST.c:95:6:SPI_Enable	0	static
+spi_ST.c:100:6:SPI_Disable	0	static
+spi_ST.c:106:9:SPI_TxRxByte	8	static
+spi_ST.c:125:6:SPI_BiDirMode	0	static
+spi_ST.c:133:9:SPI_RxData	0	static
+spi_ST.c:312:6:SPI2_IRQHandler	0	static

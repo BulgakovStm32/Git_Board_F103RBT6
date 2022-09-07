@@ -553,15 +553,15 @@ void Task_LcdUpdate(void){
 	Time_Calculation(mScounter);
 	//Выбор сраниц отображения Енкодером.
 	static uint32_t encoder = 0;
-	Encoder_IncDecParam(&Encoder, &encoder, 1, 0, 3);
+	//Encoder_IncDecParam(&Encoder, &encoder, 1, 0, 3);
 
 
 	//***********************************
 	//Отладка!!!
 	//Плавное увеличение скорости мотора.
 	//static uint32_t motorSpeedCnt = T_ARR;
-//	Encoder_IncDecParam(&Encoder, &motorSpeedCnt, 1, 22, (uint32_t)T_ARR);
-//	TIM3->ARR = (uint16_t)motorSpeedCnt;
+	Encoder_IncDecParam(&Encoder, &motorSpeedCnt, 1, 22, (uint32_t)T_ARR);
+	TIM3->ARR = (uint16_t)motorSpeedCnt;
 
 //	if(++delayCnt >= 50)
 //	{
@@ -648,12 +648,12 @@ int main(void){
 //	#define	T_FREQ						500000U						//Частота тактирования таймера в Гц.
 //	#define T_ARR 						((T_FREQ/STEP_FREQ)-1) 		//Значение регистра сравнения
 
-//	TIM3_InitForPWM();
-//	TIM3->CCR1 = 2; 			 //Задаем коэф-т заполнения.
-//	TIM3->ARR  = (uint16_t)T_ARR;//задаем минимальную скорость вращения мотора
+	TIM3_InitForPWM();
+	TIM3->CCR1 = 2; 			 //Задаем коэф-т заполнения.
+	TIM3->ARR  = (uint16_t)T_ARR;//задаем минимальную скорость вращения мотора
 	//***********************************************
 	//Ини-я DS2782.
-//	DS2782_Init(DS2782_I2C, I2C_GPIO_NOREMAP);
+	DS2782_Init(DS2782_I2C, I2C_GPIO_NOREMAP);
 	//***********************************************
 	//Ини-я LCD Lm6063. - Работает.
 	Lcd_Init();
@@ -672,8 +672,8 @@ int main(void){
 	//***********************************************
 	//Ини-я диспетчера.
 	RTOS_Init();
-	RTOS_SetTask(Task_LcdUpdate, 0, 25);
-//	RTOS_SetTask(Task_Debug, 0, 500);
+//	RTOS_SetTask(Task_LcdUpdate, 0, 20);
+	RTOS_SetTask(Task_Debug, 0, 500);
 
 	//RTOS_SetTask(Task_STM32_Master_Read,  0, 500);
 	//RTOS_SetTask(Task_STM32_Master_Write, 0, 500);
