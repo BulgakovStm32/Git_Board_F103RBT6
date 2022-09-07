@@ -14,7 +14,6 @@
 
 #include "main.h"
 
-
 //*******************************************************************************************
 //*******************************************************************************************
 typedef struct{
@@ -29,6 +28,7 @@ static uint32_t SW = 0;
 DS18B20_t Sensor_1;
 DS18B20_t Sensor_2;
 DS18B20_t Sensor_3;
+
 DS2782_t  DS2782;
 Encoder_t Encoder;
 
@@ -38,22 +38,6 @@ static uint8_t  I2CRxBuf[32] = {0};
 static uint32_t ButtonPressCount = 0;
 
 static int16_t	PIDcontrol = 0;
-
-
-
-//это то что мы хотим - количество оборотов в минуту на валу ШД или редуктора.
-#define RPM_MIN						2		//минимальная скорость вращения мотора
-#define RPM							RPM_MIN //10
-
-#define GEAR_RATIO					120 //передаточное число редуктора. Если редуктора нет то GEAR_RATIO делаем 1.
-#define NUM_STEPS_PER_REVOLUTION	200 //Количество шаго на один оборот вала ШД. Берем в даташите на ШД.
-#define MICRO_STEPS					1  //Количество микрошагов. Может быть: 1, 2, 4, 8, 16, 32 и т.д.
-#define N_STEP						(NUM_STEPS_PER_REVOLUTION*MICRO_STEPS*GEAR_RATIO)
-#define STEP_FREQ 					((RPM*N_STEP)/60)			//Частота (в Гц) тактирования драйвера ШД (линия STEP),
-#define	T_FREQ						1000000U//500000U						//Частота тактирования таймера в Гц.
-#define T_ARR 						((T_FREQ/STEP_FREQ)-1) 		//Значение регистра сравнения
-
-static uint32_t motorSpeedCnt = T_ARR;
 //*******************************************************************************************
 //*******************************************************************************************
 //*******************************************************************************************
@@ -335,57 +319,23 @@ void Task_Temperature_Display(void){
 	Lcd_SetCursor(1, 1);
 	Lcd_Print("<MCUv7Dbg>");
 
-	//Вывод времени.
-	Time_Display(1, 2);
-
-	//Вывод ошибок обvена по I2C.
-	Lcd_SetCursor(11, 1);
-	Lcd_Print("I2CNAC=");
-	Lcd_BinToDec(I2C_GetNacCount(STM32_SLAVE_I2C), 4, LCD_CHAR_SIZE_NORM);
-
-	//Енкодер.
-//	static uint16_t tempReg = 0;
-//	Encoder_IncDecParam(&Encoder, &tempReg, 5, 0, 100);
-//	TIM3->CCR1 = tempReg; //Задаем коэф-т заполнения.
-
-//	Lcd_SetCursor(1, 6);
-//	Lcd_Print("Encoder=");
-//	Lcd_BinToDec(tempReg, 4, LCD_CHAR_SIZE_NORM);
-
-
-	//Вывод темперетуры DS18B20.
-	Temperature_Display(&Sensor_1, 1, 5);
-	Temperature_Display(&Sensor_2, 1, 6);
-	Temperature_Display(&Sensor_3, 1, 7);
-
-	//Кнопка энкодера.
-	IncrementOnEachPass(&ButtonPressCount, Encoder.BUTTON_STATE);
-	Lcd_SetCursor(1, 8);
-	Lcd_Print("Button=");
-<<<<<<< HEAD
-	Lcd_BinToDec((uint16_t)ButtonPressCount, 4, LCD_CHAR_SIZE_NORM);
-=======
-	//Lcd_BinToDec((uint16_t)ButtonPressCount, 4, LCD_CHAR_SIZE_NORM);
-	Lcd_BinToDec((uint16_t)motorSpeedCnt, 4, LCD_CHAR_SIZE_NORM);
-
-
+//	//Вывод ошибок обмена по I2C.
+//	Lcd_SetCursor(11, 1);
+//	Lcd_Print("I2CNAC=");
+//	Lcd_BinToDec(I2C_GetNacCount(STM32_SLAVE_I2C), 4, LCD_CHAR_SIZE_NORM);
+//
+//	//Вывод времени.
+//	Time_Display(1, 2);
+//
 //	//Вывод темперетуры DS18B20.
-//	Sensor_1.SENSOR_NUMBER    = 1;
-//	Sensor_1.TEMPERATURE_SIGN = I2CRxBuf[0];
-//	Sensor_1.TEMPERATURE  	  = (uint32_t)((I2CRxBuf[1] << 8) | I2CRxBuf[2]);
+//	Temperature_Display(&Sensor_1, 1, 5);
+//	Temperature_Display(&Sensor_2, 1, 6);
+//	Temperature_Display(&Sensor_3, 1, 7);
 //
-//	Sensor_2.SENSOR_NUMBER    = 2;
-//	Sensor_2.TEMPERATURE_SIGN = I2CRxBuf[3];
-//	Sensor_2.TEMPERATURE      = (uint32_t)((I2CRxBuf[4] << 8) | I2CRxBuf[5]);
-//
-//	Sensor_3.SENSOR_NUMBER    = 3;
-//	Sensor_3.TEMPERATURE_SIGN = I2CRxBuf[6];
-//	Sensor_3.TEMPERATURE      = (uint32_t)((I2CRxBuf[7] << 8) | I2CRxBuf[8]);
-
-	Temperature_Display(&Sensor_1, 1, 3);
-	Temperature_Display(&Sensor_2, 1, 4);
-	Temperature_Display(&Sensor_3, 1, 5);
->>>>>>> 0f4b6671d444f3722a3a98b87d5afbe371b5b858
+//	//Кнопка энкодера.
+//	IncrementOnEachPass(&ButtonPressCount, Encoder.BUTTON_STATE);
+//	Lcd_SetCursor(1, 8);
+//	Lcd_Print("Button=");
 }
 //*******************************************************************************************
 //*******************************************************************************************
@@ -534,15 +484,6 @@ void Task_AT24C08(void){
 //*******************************************************************************************
 //*******************************************************************************************
 //*******************************************************************************************
-void Task_Debug(void){
-
-
-
-
-}
-//*******************************************************************************************
-//*******************************************************************************************
-//*******************************************************************************************
 void Task_LcdUpdate(void){
 
 	LedPC13Toggel();
@@ -550,26 +491,7 @@ void Task_LcdUpdate(void){
 	Time_Calculation(RTOS_GetTickCount());
 	//Выбор сраниц отображения Енкодером.
 	static uint32_t encoder = 0;
-	//Encoder_IncDecParam(&Encoder, &encoder, 1, 0, 3);
-
-
-	//***********************************
-	//Отладка!!!
-	//Плавное увеличение скорости мотора.
-	//static uint32_t motorSpeedCnt = T_ARR;
-	Encoder_IncDecParam(&Encoder, &motorSpeedCnt, 1, 22, (uint32_t)T_ARR);
-	TIM3->ARR = (uint16_t)motorSpeedCnt;
-
-//	if(++delayCnt >= 50)
-//	{
-//		delayCnt = 0;
-//		motorSpeedCnt -= 1;
-//		if(motorSpeedCnt <= 0) motorSpeedCnt = T_ARR;
-//		TIM3->ARR = (uint16_t)motorSpeedCnt;
-//	}
-	//***********************************
-
-
+	Encoder_IncDecParam(&Encoder, &encoder, 1, 0, 3);
 	switch(encoder){
 		//--------------------
 		case 0:
@@ -584,7 +506,7 @@ void Task_LcdUpdate(void){
 		//--------------------
 		case 2:
 			//RTOS_SetTask(Task_DS2782, 5, 0);
-			RTOS_SetTask(Task_PID, 5, 0);
+			//RTOS_SetTask(Task_PID, 5, 0);
 		break;
 		//--------------------
 		default:
@@ -592,7 +514,7 @@ void Task_LcdUpdate(void){
 			Lcd_SetCursor(1, 1);
 			Lcd_Print(" EMPTY PAGE ");
 			Lcd_SetCursor(1, 2);
-			Lcd_Print(" SW ");
+			Lcd_Print("SW ");
 			Lcd_BinToDec(SW, 4, LCD_CHAR_SIZE_NORM);
 		break;
 		//--------------------
@@ -611,7 +533,6 @@ int main(void){
 	//Drivers
 	Sys_Init();
 	Gpio_Init();
-	SysTick_Init();
 	microDelay_Init();
 	USART_Init(USART1, USART1_BRR);
 
@@ -627,35 +548,15 @@ int main(void){
 	Encoder.GPIO_PIN_BUTTON  = 10;
 	Encoder_Init(&Encoder);
 	//***********************************************
-<<<<<<< HEAD
 	//Ини-я DS18B20
 	Sensor_1.SENSOR_NUMBER = 1;
 
 	Sensor_2.SENSOR_NUMBER = 2;
 
 	Sensor_3.SENSOR_NUMBER = 3;
-=======
-	//Инициализация	ШИМ
-
-//	//это то что мы хотим - количество оборотов в минуту на валу ШД или редуктора.
-//	#define RPM_MIN						2		//минимальная скорость вращения мотора
-//	#define RPM							RPM_MIN //10
-//
-//	#define GEAR_RATIO					120 //передаточное число редуктора. Если редуктора нет то GEAR_RATIO делаем 1.
-//	#define NUM_STEPS_PER_REVOLUTION	200 //Количество шаго на один оборот вала ШД. Берем в даташите на ШД.
-//	#define MICRO_STEPS					2  //Количество микрошагов. Может быть: 1, 2, 4, 8, 16, 32 и т.д.
-//	#define N_STEP						(NUM_STEPS_PER_REVOLUTION*MICRO_STEPS*GEAR_RATIO)
-//	#define STEP_FREQ 					((RPM*N_STEP)/60)			//Частота (в Гц) тактирования драйвера ШД (линия STEP),
-//	#define	T_FREQ						500000U						//Частота тактирования таймера в Гц.
-//	#define T_ARR 						((T_FREQ/STEP_FREQ)-1) 		//Значение регистра сравнения
-
-	TIM3_InitForPWM();
-	TIM3->CCR1 = 2; 			 //Задаем коэф-т заполнения.
-	TIM3->ARR  = (uint16_t)T_ARR;//задаем минимальную скорость вращения мотора
->>>>>>> 0f4b6671d444f3722a3a98b87d5afbe371b5b858
 	//***********************************************
 	//Ини-я DS2782.
-	DS2782_Init(DS2782_I2C, I2C_GPIO_NOREMAP);
+//	DS2782_Init(DS2782_I2C, I2C_GPIO_NOREMAP);
 	//***********************************************
 	//Ини-я LCD Lm6063. - Работает.
 	Lcd_Init();
@@ -666,7 +567,7 @@ int main(void){
 //	I2C_IT_StartTx(I2C1, SSD1306_I2C_ADDR, 0x55, i2cBuf, 3);
 
 	//Отладка I2C+DMA.
-	I2C_DMA_Init(I2C1, I2C_GPIO_NOREMAP);
+//	I2C_DMA_Init(I2C1, I2C_GPIO_NOREMAP);
 	//***********************************************
 	//Инициализация PID.
 	PID_Init(K_P * SCALING_FACTOR,
@@ -676,19 +577,8 @@ int main(void){
 	//***********************************************
 	//Ини-я диспетчера.
 	RTOS_Init();
-<<<<<<< HEAD
 	RTOS_SetTask(Task_LcdUpdate,         0, 25);
-	RTOS_SetTask(Task_Temperature_Read, 50, 1000);
-=======
-//	RTOS_SetTask(Task_LcdUpdate, 0, 20);
-	RTOS_SetTask(Task_Debug, 0, 500);
-
-	//RTOS_SetTask(Task_STM32_Master_Read,  0, 500);
-	//RTOS_SetTask(Task_STM32_Master_Write, 0, 500);
-
-	//RTOS_SetTask(Task_Temperature_Read, 0, 1000);
-	//RTOS_SetTask(Task_GPS, 			0, 500);
->>>>>>> 0f4b6671d444f3722a3a98b87d5afbe371b5b858
+//	RTOS_SetTask(Task_Temperature_Read, 50, 1000);
 
 //	RTOS_SetTask(Task_STM32_Master_Read,  0, 500);
 //	RTOS_SetTask(Task_STM32_Master_Write, 0, 500);
@@ -697,6 +587,7 @@ int main(void){
 //	RTOS_SetTask(Task_PID,      0, 500);
 //	RTOS_SetTask(Task_AT24C08,  0, 500);
 	//***********************************************
+	SysTick_Init();
 	__enable_irq();
 	//**************************************************************
 	while(1)
@@ -711,24 +602,6 @@ int main(void){
 //Прерывание каждую милисекунду.
 void SysTick_Handler(void){
 
-<<<<<<< HEAD
-=======
-	//***********************************
-	//Отладка!!!
-	//Плавное увеличение скорости мотора.
-	static uint32_t delayCnt = 0;
-	static int32_t motorSpeedCnt = T_ARR;
-
-//	if(++delayCnt >= 50)
-//	{
-//		delayCnt = 0;
-//		motorSpeedCnt -= 1;
-//		if(motorSpeedCnt <= 0) motorSpeedCnt = T_ARR;
-//		TIM3->ARR = (uint16_t)motorSpeedCnt;
-//	}
-	//***********************************
-	mScounter++;
->>>>>>> 0f4b6671d444f3722a3a98b87d5afbe371b5b858
 	RTOS_TimerServiceLoop();
 	msDelay_Loop();
 	Blink_Loop();
