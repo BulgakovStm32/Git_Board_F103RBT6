@@ -1,3 +1,0 @@
-PID.c:23:6:PID_Init	8	static
-PID.c:47:9:PID_Controller	16	static
-PID.c:102:6:PID_Reset_Integrator	0	static

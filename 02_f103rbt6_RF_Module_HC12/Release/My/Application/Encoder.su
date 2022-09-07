@@ -1,4 +1,0 @@
-Encoder.c:14:13:_encoder_GpioInit	12	static
-Encoder.c:48:6:Encoder_Init	8	static
-Encoder.c:62:6:Encoder_ScanLoop	12	static
-Encoder.c:116:6:Encoder_IncDecParam	12	static

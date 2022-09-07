@@ -1,8 +1,0 @@
-DS18B20.c:51:16:OneWire_Reset	16	static
-DS18B20.c:83:13:OneWire_WriteByte	32	static
-DS18B20.c:258:6:TemperatureSens_GpioInit	8	static
-DS18B20.c:263:6:TemperatureSens_SetResolution	8	static
-DS18B20.c:274:6:TemperatureSens_StartConvertTemperature	8	static
-DS18B20.c:281:6:TemperatureSens_ReadTemperature	32	static,ignoring_inline_asm
-DS18B20.c:297:10:TemperatureSens_Sign	0	static
-DS18B20.c:302:10:TemperatureSens_Temperature	0	static

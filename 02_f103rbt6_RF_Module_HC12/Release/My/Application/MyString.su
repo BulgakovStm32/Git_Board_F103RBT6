@@ -1,6 +1,0 @@
-MyString.c:16:11:Txt_Buf	0	static
-MyString.c:21:6:Txt_Chr	0	static
-MyString.c:26:9:Txt_Print	16	static
-MyString.c:40:9:Txt_BinToDec	32	static
-MyString.c:79:6:Txt_u8ToHex	8	static
-MyString.c:94:6:Txt_u32ToHex	8	static
