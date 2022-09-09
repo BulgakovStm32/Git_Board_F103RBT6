@@ -47,7 +47,7 @@ static SSD1306_t SSD1306;
 static void ssd1306_I2C_WriteDataBuf(uint8_t *pData, uint32_t len){
 
 	//I2C_Write(SSD1306_I2C, SSD1306_I2C_ADDR, 0x40, pData, len);
-	I2C_DMA_Write(SSD1306_I2C, SSD1306_I2C_ADDR, 0x40, pData, len);
+//	I2C_DMA_Write(SSD1306_I2C, SSD1306_I2C_ADDR, 0x40, pData, len);
 }
 //***********************************************************************
 /**
@@ -60,14 +60,14 @@ static void ssd1306_I2C_WriteDataBuf(uint8_t *pData, uint32_t len){
  */
 static uint32_t ssd1306_I2C_WriteCMD(uint8_t cmd){
 
-	return I2C_Write(SSD1306_I2C, SSD1306_I2C_ADDR, 0, &cmd, 1);
+//	return I2C_Write(SSD1306_I2C, SSD1306_I2C_ADDR, 0, &cmd, 1);
 }
 //*******************************************************************************************
 //*******************************************************************************************
 uint32_t SSD1306_Init(I2C_TypeDef *i2c, uint32_t lcdType, uint32_t i2cRemap){
 
 	/* Init I2C */
-	I2C_Init(i2c, i2cRemap);
+//	I2C_Init(i2c, i2cRemap);
 	/* Init LCD */
 	//pVideoBuffer = Lcd_pVideoBuffer();
 	//if(ssd1306_I2C_WriteCMD(0xAE) != I2C_OK) return 1; //display off
@@ -139,7 +139,7 @@ void SSD1306_UpdateScreen(uint8_t *pBuf, uint32_t size){
 	static uint32_t count = 0;
 	uint32_t cmd = 0;
 
-	if(I2C_DMA_State() != I2C_DMA_READY) return;
+//	if(I2C_DMA_State() != I2C_DMA_READY) return;
 	if(SSD1306_lcdType == SSD1306_128x64) cmd = 0x02;//смещение вывода изображениея на 2 столбца.
 
 	ssd1306_I2C_WriteCMD(0xB0 + count);//Set Page Start Address for Page Addressing Mode,0-7.

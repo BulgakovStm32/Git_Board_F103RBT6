@@ -319,10 +319,10 @@ void DMA1_Channel5_IRQHandler(void){
 * Output         : None
 * Return         : None
 *******************************************************************************/
-//void DMA1_Channel6_IRQHandler(void){
-//
-////	I2C1_IT_DMA_TX_Handler();
-//}
+void DMA1_Channel6_IRQHandler(void){
+
+	I2C1_DMA_IT_TX_Handler();
+}
 /*******************************************************************************
 * Function Name  : DMA1_Channel7_IRQHandler
 * Description    : This function handles DMA1 Channel 7 interrupt request.
@@ -330,10 +330,10 @@ void DMA1_Channel5_IRQHandler(void){
 * Output         : None
 * Return         : None
 *******************************************************************************/
-//void DMA1_Channel7_IRQHandler(void){
-//
-////	I2C1_IT_DMA_RX_Handler();
-//}
+void DMA1_Channel7_IRQHandler(void){
+
+	I2C1_DMA_IT_RX_Handler();
+}
 /*******************************************************************************
 * Function Name  : ADC1_2_IRQHandler
 * Description    : This function handles ADC1 and ADC2 global interrupts requests.
@@ -485,10 +485,10 @@ void TIM4_IRQHandler(void) {
 * Output         : None
 * Return         : None
 *******************************************************************************/
-//void I2C1_EV_IRQHandler(void){
-//
-//	I2C_IT_EV_Handler(I2C1);
-//}
+void I2C1_EV_IRQHandler(void){
+
+	//	I2C_IT_EV_Handler(I2C1);
+}
 /*******************************************************************************
 * Function Name  : I2C1_ER_IRQHandler
 * Description    : This function handles I2C1 Error interrupt request.
@@ -496,10 +496,10 @@ void TIM4_IRQHandler(void) {
 * Output         : None
 * Return         : None
 *******************************************************************************/
-//void I2C1_ER_IRQHandler(void){
-//
-//	I2C_IT_ER_Handler(I2C1);
-//}
+void I2C1_ER_IRQHandler(void){
+
+	I2C_IT_ER_Handler(I2C1);
+}
 /*******************************************************************************
 * Function Name  : I2C2_EV_IRQHandler
 * Description    : This function handles I2C2 Event interrupt request.
@@ -507,10 +507,10 @@ void TIM4_IRQHandler(void) {
 * Output         : None
 * Return         : None
 *******************************************************************************/
-//void I2C2_EV_IRQHandler(void){
-//
-//	I2C_IT_EV_Handler(I2C2);
-//}
+void I2C2_EV_IRQHandler(void){
+
+	//	I2C_IT_EV_Handler(I2C2);
+}
 /*******************************************************************************
 * Function Name  : I2C2_ER_IRQHandler
 * Description    : This function handles I2C2 Error interrupt request.
@@ -518,10 +518,10 @@ void TIM4_IRQHandler(void) {
 * Output         : None
 * Return         : None
 *******************************************************************************/
-//void I2C2_ER_IRQHandler(void){
-//
-//	I2C_IT_ER_Handler(I2C2);
-//}
+void I2C2_ER_IRQHandler(void){
+
+	//	I2C_IT_ER_Handler(I2C2);
+}
 /*******************************************************************************
 * Function Name  : SPI1_IRQHandler
 * Description    : This function handles SPI1 global interrupt request.

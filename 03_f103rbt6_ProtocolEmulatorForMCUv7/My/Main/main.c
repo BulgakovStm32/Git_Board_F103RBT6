@@ -26,13 +26,10 @@ DS2782_t  DS2782;
 
 Encoder_t Encoder;
 
-I2C_DMA_t I2cDma;
+I2C_IT_t  I2cDma;
 
-//static uint8_t  I2CTxBuf[32] = {0};
-//static uint8_t  I2CRxBuf[32] = {0};
 
 static uint32_t ButtonPressCount = 0;
-static int16_t	PIDcontrol = 0;
 
 static uint32_t MCUv7_EncoderVal    	= 0;
 static uint32_t MCUv7_SupplyVoltageVal 	= 0;
@@ -140,7 +137,7 @@ void Task_DS2782_Display(void){
 	//Вывод ошибок обvена по I2C.
 	Lcd_SetCursor(10, 1);
 	Lcd_Print("I2CNAC=");
-	Lcd_BinToDec(I2C_GetNacCount(DS2782_I2C), 4, LCD_CHAR_SIZE_NORM);
+//	Lcd_BinToDec(I2C_GetNacCount(DS2782_I2C), 4, LCD_CHAR_SIZE_NORM);
 
 	//Вывод адреса на шине I2C
 	Lcd_SetCursor(1, 3);
@@ -278,7 +275,7 @@ void Task_Temperature_Display(void){
 	//Вывод ошибок обvена по I2C.
 	Lcd_SetCursor(11, 1);
 	Lcd_Print("I2CNAC=");
-	Lcd_BinToDec(I2C_GetNacCount(STM32_SLAVE_I2C), 4, LCD_CHAR_SIZE_NORM);
+	Lcd_BinToDec(I2C_Master_GetNacCount(I2cDma.i2c), 4, LCD_CHAR_SIZE_NORM);
 	//Вывод времени.
 	Time_Display(1, 2);
 
@@ -293,47 +290,16 @@ void Task_Temperature_Display(void){
 	Lcd_Print("MCU_Enc  = ");
 	Lcd_BinToDec(MCUv7_EncoderVal, 6, LCD_CHAR_SIZE_NORM);
 
+	//Значение оптических датчиков
 	Lcd_SetCursor(1, 5);
 	Lcd_Print("MCU_Sense= ");
 	Lcd_u32ToHex(MCUv7_Sense);
-//	Lcd_BinToDec(MCUv7_EncoderVal, 6, LCD_CHAR_SIZE_NORM);
 
-	//Енкодер.
-//	static uint16_t tempReg = 0;
-//	Encoder_IncDecParam(&Encoder, &tempReg, 5, 0, 100);
-//	TIM3->CCR1 = tempReg; //Задаем коэф-т заполнения.
-
-//	Lcd_SetCursor(1, 6);
-//	Lcd_Print("Encoder=");
-//	Lcd_BinToDec(tempReg, 4, LCD_CHAR_SIZE_NORM);
-
-	//PID
-//	Lcd_SetCursor(1, 8);
-//	Lcd_Print("PID_Out=");
-//	if(PIDcontrol < 0)
-//	{
-//		PIDcontrol = (PIDcontrol ^ 0xFFFF) + 1;//Уберем знак.
-//		Lcd_Chr('-');
-//	}
-//	else Lcd_Chr(' ');
-//	Lcd_BinToDec((uint16_t)PIDcontrol, 4, LCD_CHAR_SIZE_NORM);
-
-//	//Вывод темперетуры DS18B20.
-//	Sensor_1.SENSOR_NUMBER    = 1;
-//	Sensor_1.TEMPERATURE_SIGN = I2CRxBuf[0];
-//	Sensor_1.TEMPERATURE  	  = (uint32_t)((I2CRxBuf[1] << 8) | I2CRxBuf[2]);
-//
-//	Sensor_2.SENSOR_NUMBER    = 2;
-//	Sensor_2.TEMPERATURE_SIGN = I2CRxBuf[3];
-//	Sensor_2.TEMPERATURE      = (uint32_t)((I2CRxBuf[4] << 8) | I2CRxBuf[5]);
-//
-//	Sensor_3.SENSOR_NUMBER    = 3;
-//	Sensor_3.TEMPERATURE_SIGN = I2CRxBuf[6];
-//	Sensor_3.TEMPERATURE      = (uint32_t)((I2CRxBuf[7] << 8) | I2CRxBuf[8]);
-
+	//Вывод темперетуры DS18B20.
 	Temperature_Display(&Sensor_1, 1, 6);
 	Temperature_Display(&Sensor_2, 1, 7);
 //	Temperature_Display(&Sensor_3, 1, 6);
+
 	//Кнопка энкодера.
 	IncrementOnEachPass(&ButtonPressCount, Encoder.BUTTON_STATE);
 	Lcd_SetCursor(1, 8);
@@ -416,27 +382,6 @@ void Task_UartSend(void){
 //*******************************************************************************************
 //*******************************************************************************************
 //*******************************************************************************************
-/*!brief P, I and D parameter values
- * The K_P, K_I and K_D values (P, I and D gains)
- * need to be modified to adapt to the application at hand
- */
-#define K_P 0.60
-#define K_I 0.40
-#define K_D	0.00
-PID_t 		PID;
-//************************************************************
-void Task_PID(void){
-
-	static int16_t outVal = 0;
-	//-----------------------------
-
-	PIDcontrol = PID_Controller(81, outVal, &PID);
-	outVal     = PIDcontrol;
-}
-//*******************************************************************************************
-//*******************************************************************************************
-//*******************************************************************************************
-//*******************************************************************************************
 #define MCUv7_I2C		I2C1
 #define MCUv7_I2C_ADDR	(0x05<<1)
 
@@ -449,7 +394,7 @@ void Task_ReadResponseFromMCU(void){
 	//Чтение ответа на команду от MCUv7 с помощью DMA.
 	I2cDma.slaveAddr = MCUv7_I2C_ADDR;
 	I2cDma.rxBufSize = McuResponseSize;
-	if(I2C_DMA_Read(&I2cDma) == I2C_DMA_NAC)//Если ошибка при чтении ответа
+	if(I2C_DMA_Read(&I2cDma) == I2C_DMA_ERR)//Если ошибка при чтении ответа
 	{
 		for(uint32_t i = 0; i < McuResponseSize; i++) *(I2cDma.pRxBuf+i) = 0;//Очистка буфера.
 		I2C_DMA_Init(&I2cDma);
@@ -459,11 +404,10 @@ void Task_ReadResponseFromMCU(void){
 void Task_RequestFromMCUv7(void){
 
 	static uint32_t cyclCount = cmdArduinoMicroTS;
-	MCU_Request_t   *request  = (MCU_Request_t *)McuI2cTxBuf;
+	MCU_Request_t   *request  = (MCU_Request_t *)McuI2cTxBuf; //I2cDma.pTxBuf;
 	//-----------------------------
 	//Индикация передачи
 	//LedPC13Toggel();
-
 	switch(cyclCount){
 		//------------------
 //		case(0):
@@ -535,28 +479,25 @@ void Task_RequestFromMCUv7(void){
 	request->Payload[request->Count-1] = CRC_Calculate((uint8_t*)request, request->Count+1);
 
 	//Перадача команды в MCUv7
-	if(I2C_StartAndSendDeviceAddr(MCUv7_I2C, MCUv7_I2C_ADDR|I2C_MODE_WRITE) != I2C_OK) return;//Если нет Ack то выходим.
+	uint32_t err = I2C_StartAndSendDeviceAddr(MCUv7_I2C, MCUv7_I2C_ADDR|I2C_MODE_WRITE);
+		 if(err == I2C_ERR_ADDR) return;//Если нет Ack то выходим.
+	else if(err == I2C_ERR_START)		//Если ошибка формирования старт последовательности
+	{
+		I2C_DMA_Init(&I2cDma); //Повторная инициализация I2C.
+		return;
+	}
 	I2C_SendData(MCUv7_I2C, (uint8_t*)request, request->Count+2);
+//	I2C_SendDataWithoutStop(MCUv7_I2C, (uint8_t*)request, request->Count+2);
 
 	//Чтение ответа от MCUv7 на команду через 1 мС.
-//	RTOS_SetTask(Task_ReadResponseFromMCU, 1, 0);
+	RTOS_SetTask(Task_ReadResponseFromMCU, 1, 0);
 
 	//Чтение ответа на команду от MCUv7 с помощью DMA.
-	I2cDma.slaveAddr = MCUv7_I2C_ADDR;
-	I2cDma.rxBufSize = McuResponseSize;
-	if(I2C_DMA_Read(&I2cDma) == I2C_DMA_NAC)//Если ошибка при чтении ответа
-	{
-		for(uint32_t i = 0; i < McuResponseSize; i++) *(I2cDma.pRxBuf+i) = 0;//Очистка буфера.
-		I2C_DMA_Init(&I2cDma);
-	}
-
-
-//	//Чтение ответа на команду от MCUv7 с помощью DMA.
 //	I2cDma.slaveAddr = MCUv7_I2C_ADDR;
-//	I2cDma.rxBufSize = rxSize;
+//	I2cDma.rxBufSize = McuResponseSize;
 //	if(I2C_DMA_Read(&I2cDma) == I2C_DMA_NAC)//Если ошибка при чтении ответа
 //	{
-//		for(uint32_t i = 0; i < rxSize; i++) *(I2cDma.RxBuf+i) = 0;//Очистка буфера.
+//		for(uint32_t i = 0; i < McuResponseSize; i++) *(I2cDma.pRxBuf+i) = 0;//Очистка буфера.
 //		I2C_DMA_Init(&I2cDma);
 //	}
 }
@@ -612,6 +553,10 @@ void I2cRxParsing(void){
 		//------------------
 	}
 }
+//************************************************************
+void I2cTxParsing(void){
+
+}
 //*******************************************************************************************
 //*******************************************************************************************
 //*******************************************************************************************
@@ -632,7 +577,7 @@ void Task_LcdUpdate(void){
 		break;
 		//--------------------
 		case 1:
-			RTOS_SetTask(Task_DS2782,	  	  5,  0);
+			//RTOS_SetTask(Task_DS2782,	  	  5,  0);
 			RTOS_SetTask(Task_DS2782_Display, 10, 0);
 		break;
 		//--------------------
@@ -645,7 +590,7 @@ void Task_LcdUpdate(void){
 	}
 	//Обновление изображения на экране.
 	//Очистка видеобуфера производится на каждой странице.
-	Lcd_Update(); //вывод сделан для SSD1306
+	Lcd_Update(); //вывод сделан для LM6063D
 }
 //*******************************************************************************************
 //*******************************************************************************************
@@ -662,12 +607,6 @@ int main(void){
 
 	MICRO_DELAY(100000);//Эта задержка нужна для стабилизации напряжения патания.
 					    //Без задержки LCD-дисплей не работает.
-	//***********************************************
-	//Инициализация PID.
-	PID_Init(K_P * SCALING_INT16_FACTOR,
-			 K_I * SCALING_INT16_FACTOR,
-			 K_D * SCALING_INT16_FACTOR,
-			 &PID);
 	//***********************************************
 	//Ини-я DS2782.
 //	DS2782_Init(DS2782_I2C, I2C_GPIO_NOREMAP);
@@ -697,6 +636,7 @@ int main(void){
 	I2cDma.i2c 			 = I2C1;
 	I2cDma.i2cGpioRemap  = I2C_GPIO_NOREMAP;
 	I2cDma.i2cRxCallback = I2cRxParsing;
+	I2cDma.i2cTxCallback = I2cTxParsing;
 	I2C_DMA_Init(&I2cDma);
 	//***********************************************
 	//Ини-я диспетчера.
