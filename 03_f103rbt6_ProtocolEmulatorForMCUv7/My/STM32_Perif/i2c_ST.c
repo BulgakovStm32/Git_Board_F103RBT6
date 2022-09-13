@@ -17,10 +17,8 @@ static uint32_t I2C2NacCount = 0;
 //*******************************************************************************************
 static uint32_t _i2c_LongWait(I2C_TypeDef *i2c, uint32_t flag){
 
-	uint32_t count = 0;
+	uint32_t count = MICRO_DELAY_GetCount();
 	//---------------------
-	count = MICRO_DELAY_GetCount();
-
 	while(!(i2c->SR1 & flag))//Ждем отпускания флага.
 	{
 		//if(++count >= I2C_WAIT_TIMEOUT) return 1;
@@ -160,6 +158,8 @@ I2C_State_t I2C_SendDataWithoutStop(I2C_TypeDef *i2c, uint8_t *pBuf, uint32_t le
 		err = I2C_SendByte(i2c, *(pBuf + i));
 		if(err != I2C_OK) return err;
 	}
+	//Ждем освобождения буфера
+	if(_i2c_LongWait(i2c, I2C_SR1_TXE)) return I2C_ERR_TX_BYTE;
 	return I2C_OK;
 }
 //**********************************************************

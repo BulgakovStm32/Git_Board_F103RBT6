@@ -31,8 +31,8 @@
 #define I2C_FM_CCR		30 //(2500U / (3 * TPCLK1))
 #define I2C_FM_TRISE	12 //(300U  / TPCLK1)
 //--------------------------
-#define I2C_WAIT_TIMEOUT	500U
-#define I2C_WAIT_TIMEOUT_uS	10000
+//#define I2C_WAIT_TIMEOUT	500U
+#define I2C_WAIT_TIMEOUT_uS	10000U
 //--------------------------
 #define I2C_MODE_READ  			1
 #define I2C_MODE_WRITE 			0

@@ -486,20 +486,20 @@ void Task_RequestFromMCUv7(void){
 		I2C_DMA_Init(&I2cDma); //Повторная инициализация I2C.
 		return;
 	}
-	I2C_SendData(MCUv7_I2C, (uint8_t*)request, request->Count+2);
-//	I2C_SendDataWithoutStop(MCUv7_I2C, (uint8_t*)request, request->Count+2);
+//	I2C_SendData(MCUv7_I2C, (uint8_t*)request, request->Count+2);
+	I2C_SendDataWithoutStop(MCUv7_I2C, (uint8_t*)request, request->Count+2);
 
 	//Чтение ответа от MCUv7 на команду через 1 мС.
-	RTOS_SetTask(Task_ReadResponseFromMCU, 1, 0);
+//	RTOS_SetTask(Task_ReadResponseFromMCU, 1, 0);
 
 	//Чтение ответа на команду от MCUv7 с помощью DMA.
-//	I2cDma.slaveAddr = MCUv7_I2C_ADDR;
-//	I2cDma.rxBufSize = McuResponseSize;
-//	if(I2C_DMA_Read(&I2cDma) == I2C_DMA_NAC)//Если ошибка при чтении ответа
-//	{
-//		for(uint32_t i = 0; i < McuResponseSize; i++) *(I2cDma.pRxBuf+i) = 0;//Очистка буфера.
-//		I2C_DMA_Init(&I2cDma);
-//	}
+	I2cDma.slaveAddr = MCUv7_I2C_ADDR;
+	I2cDma.rxBufSize = McuResponseSize;
+	if(I2C_DMA_Read(&I2cDma) == I2C_DMA_NAC)//Если ошибка при чтении ответа
+	{
+		for(uint32_t i = 0; i < McuResponseSize; i++) *(I2cDma.pRxBuf+i) = 0;//Очистка буфера.
+		I2C_DMA_Init(&I2cDma);
+	}
 }
 //************************************************************
 void I2cRxParsing(void){
