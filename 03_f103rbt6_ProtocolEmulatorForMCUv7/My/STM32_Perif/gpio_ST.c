@@ -30,8 +30,7 @@ void Gpio_Init (void){
   //--------------------
   //PC13 - Led.
   GPIOC->CRH &= ~GPIO_CRH_CNF13;//выход, режим - push-pull.
-  GPIOC->CRH |= GPIO_CRH_MODE13;//тактирование 50МГц.
-
+  GPIOC->CRH |= (GPIO_CRH_MODE13_1 );//GPIO_CRH_MODE13;//тактирование 2МГц.-так меньже звон
   //--------------------
   //PA6 - Led.
   //PA7 - Led.

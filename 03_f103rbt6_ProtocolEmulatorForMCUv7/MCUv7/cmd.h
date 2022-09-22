@@ -83,6 +83,7 @@ typedef enum{
 
 	//Отладочные команды
 	cmdGetSenseState = 0x41,
+	cmdGetResetCount = 0x42,
 
     mcuCmdMapSize
 }MCU_Cmd_t;

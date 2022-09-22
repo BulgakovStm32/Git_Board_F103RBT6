@@ -17,12 +17,11 @@ static uint32_t I2C2NacCount = 0;
 //*******************************************************************************************
 static uint32_t _i2c_LongWait(I2C_TypeDef *i2c, uint32_t flag){
 
-	uint32_t count = MICRO_DELAY_GetCount();
+	uint32_t count = 0;
 	//---------------------
 	while(!(i2c->SR1 & flag))//Ждем отпускания флага.
 	{
-		//if(++count >= I2C_WAIT_TIMEOUT) return 1;
-		if((MICRO_DELAY_GetCount() - count) > I2C_WAIT_TIMEOUT_uS) return 1;
+		if(++count >= I2C_WAIT_TIMEOUT) return 1;
 	}
 	return 0;
 }
@@ -45,7 +44,6 @@ static void _i2c_GPIO_Init(I2C_TypeDef *i2c, uint32_t remap){
 		{
 			GPIOB->CRL |= GPIO_CRL_MODE6_1 | GPIO_CRL_MODE7_1 |
 						  GPIO_CRL_CNF6    | GPIO_CRL_CNF7;
-
 		}
 	}
 	//Тактирование I2C_2
@@ -160,6 +158,7 @@ I2C_State_t I2C_SendDataWithoutStop(I2C_TypeDef *i2c, uint8_t *pBuf, uint32_t le
 	}
 	//Ждем освобождения буфера
 	if(_i2c_LongWait(i2c, I2C_SR1_TXE)) return I2C_ERR_TX_BYTE;
+	//if(_i2c_LongWait(i2c, I2C_SR1_BTF)) return I2C_ERR_BTF;
 	return I2C_OK;
 }
 //**********************************************************
@@ -324,15 +323,15 @@ void I2C_IT_Init(I2C_IT_t *i2cIt){
 	if(i2cIt->i2c == I2C1)
 	{
 //		NVIC_SetPriority(I2C1_EV_IRQn, 15);//Приоритет прерывания.
-		NVIC_SetPriority(I2C1_ER_IRQn, 15);//Приоритет прерывания.
+		NVIC_SetPriority(I2C1_ER_IRQn, 2);//Приоритет прерывания.
 
 //		NVIC_EnableIRQ(I2C1_EV_IRQn);      //Разрешаем прерывание.
 		NVIC_EnableIRQ(I2C1_ER_IRQn);      //Разрешаем прерывание.
 	}
 	else
 	{
-		NVIC_SetPriority(I2C2_EV_IRQn, 15);//Приоритет прерывания.
-		NVIC_SetPriority(I2C2_ER_IRQn, 15);//Приоритет прерывания.
+		NVIC_SetPriority(I2C2_EV_IRQn, 2);//Приоритет прерывания.
+		NVIC_SetPriority(I2C2_ER_IRQn, 2);//Приоритет прерывания.
 
 		NVIC_EnableIRQ(I2C2_EV_IRQn);      //Разрешаем прерывание.
 		NVIC_EnableIRQ(I2C2_ER_IRQn);      //Разрешаем прерывание.
@@ -629,7 +628,7 @@ uint32_t I2C_DMA_Write(I2C_IT_t *i2cIt){
 				 //DMA_CCR_HTIE | 		 	//HTIE: Half transfer interrupt enable
 				 DMA_CCR_TCIE;// | 		 	//TCIE: Transfer complete interrupt enable
 				 //DMA_CCR_EN;			 	//EN: Channel enable
-	NVIC_SetPriority(DMA1_Channel6_IRQn, 0);//Set priority
+	NVIC_SetPriority(DMA1_Channel6_IRQn, 1);//Set priority
 	NVIC_EnableIRQ(DMA1_Channel6_IRQn);     //Enable DMA1_Channel6_IRQn
 
 	i2c->CR2 |= I2C_CR2_DMAEN;//DMAEN(DMA requests enable)
@@ -674,7 +673,7 @@ uint32_t I2C_DMA_Read (I2C_IT_t *i2cIt){
 				 //DMA_CCR_HTIE | 		    //HTIE: Half transfer interrupt enable
 				 DMA_CCR_TCIE;// | 		    //TCIE: Transfer complete interrupt enable
 				//DMA_CCR_EN;			    //EN: Channel enable
-	NVIC_SetPriority(DMA1_Channel7_IRQn, 0);//Set priority
+	NVIC_SetPriority(DMA1_Channel7_IRQn, 1);//Set priority
 	NVIC_EnableIRQ(DMA1_Channel7_IRQn);     //Enable DMA1_Channel6_IRQn
 
 //	i2c->CR2 |= I2C_CR2_DMAEN | //DMA Requests Enable.

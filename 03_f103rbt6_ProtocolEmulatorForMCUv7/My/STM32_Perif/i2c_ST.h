@@ -14,36 +14,34 @@
 
 //*******************************************************************************************
 //*******************************************************************************************
-#define APB1_CLK		36000000U 				//Частота шины APB1 в Гц
-#define I2C_FREQ	    (APB1_CLK / 1000000U)	//Peripheral clock frequency (MHz)
+#define APB1_CLK			36000000U 				//Частота шины APB1 в Гц
+#define I2C_FREQ	    	(APB1_CLK / 1000000U)	//Peripheral clock frequency (MHz)
 
 //Sm mode or SMBus:
 //TPCLK1 = 27,7777 ns
 //CCR    = 1000nS/ (2 * TPCLK1)
 //TRISE  = (1000nS/TPCLK1)
-#define I2C_SM_CCR		180 //(10000U / (2 * TPCLK1))
-#define I2C_SM_TRISE	36  //(1000U  / TPCLK1)
+#define I2C_SM_CCR			180 //(10000U / (2 * TPCLK1))
+#define I2C_SM_TRISE		36  //(1000U  / TPCLK1)
 
 //Fm mode:
 //TPCLK1 = 27,7777 ns
 //CCR    = 2500nS/ (3 * TPCLK1)
 //TRISE  = (300nS/TPCLK1)
-#define I2C_FM_CCR		30 //(2500U / (3 * TPCLK1))
-#define I2C_FM_TRISE	12 //(300U  / TPCLK1)
+#define I2C_FM_CCR			30 //(2500U / (3 * TPCLK1))
+#define I2C_FM_TRISE		12 //(300U  / TPCLK1)
 //--------------------------
-//#define I2C_WAIT_TIMEOUT	500U
-#define I2C_WAIT_TIMEOUT_uS	10000U
+#define I2C_WAIT_TIMEOUT	5000U
 //--------------------------
-#define I2C_MODE_READ  			1
-#define I2C_MODE_WRITE 			0
+#define I2C_MODE_READ  		1
+#define I2C_MODE_WRITE 		0
 #define I2C_ADDRESS(addr, mode) ((addr<<1) | mode)
 //--------------------------
 #define I2C_GPIO_NOREMAP	0
 #define I2C_GPIO_REMAP		1
 
-#define I2C_MODE_MASTER	0
-#define I2C_MODE_SLAVE	1
-
+#define I2C_MODE_MASTER		0
+#define I2C_MODE_SLAVE		1
 //--------------------------
 typedef enum{
 	I2C_OK = 0,

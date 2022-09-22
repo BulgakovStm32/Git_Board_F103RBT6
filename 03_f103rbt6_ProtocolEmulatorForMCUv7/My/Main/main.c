@@ -35,6 +35,7 @@ static uint32_t MCUv7_EncoderVal    	= 0;
 static uint32_t MCUv7_SupplyVoltageVal 	= 0;
 static uint32_t MCUv7_msVal		    	= 0;
 static uint32_t MCUv7_Sense				= 0;
+static uint32_t MCUv7_I2cResetCount 	= 0;
 //*******************************************************************************************
 //*******************************************************************************************
 //*******************************************************************************************
@@ -67,9 +68,9 @@ void Temperature_Display(DS18B20_t *sensor, uint8_t cursor_x, uint8_t cursor_y){
 	uint32_t temperature = sensor->TEMPERATURE;
 	//-------------------
 	Lcd_SetCursor(cursor_x, cursor_y);
-	Lcd_Print("Sens");
+	Lcd_Print("MCU_T");
 	Lcd_BinToDec(sensor->SENSOR_NUMBER, 1, LCD_CHAR_SIZE_NORM);
-	Lcd_Print("= ");
+	Lcd_Print("   = ");
 	if(TemperatureSens_Sign(sensor) & DS18B20_SIGN_NEGATIVE)Lcd_Chr('-');
 	else                    								Lcd_Chr('+');
 	Lcd_BinToDec(temperature/10, 2, LCD_CHAR_SIZE_NORM);
@@ -98,7 +99,7 @@ void Time_Display(uint8_t cursor_x, uint8_t cursor_y){
 
 	//Вывод времени.
 	Lcd_SetCursor(cursor_x, cursor_y);
-	Lcd_Print("Time: ");
+//	Lcd_Print("Time: ");
 	Lcd_BinToDec(Time.hour, 2, LCD_CHAR_SIZE_NORM);//часы
 	Lcd_Chr(':');
 	Lcd_BinToDec(Time.min,  2, LCD_CHAR_SIZE_NORM);//минуты
@@ -265,46 +266,52 @@ void Task_STM32_Master_Read(void){
 //	TemperatureSens_ReadTemperature(&Sensor_3);
 //}
 //************************************************************
-void Task_Temperature_Display(void){
+void Task_MCUv7DataDisplay(void){
 
 	Lcd_ClearVideoBuffer();
 
 	//Шапка
 	Lcd_SetCursor(1, 1);
-	Lcd_Print("Dbg_MCUv7");
-	//Вывод ошибок обvена по I2C.
-	Lcd_SetCursor(11, 1);
-	Lcd_Print("I2CNAC=");
-	Lcd_BinToDec(I2C_Master_GetNacCount(I2cDma.i2c), 4, LCD_CHAR_SIZE_NORM);
+	Lcd_Print("Emul_MCUv7");
 	//Вывод времени.
-	Time_Display(1, 2);
+	Time_Display(14, 1);
+
+	//Вывод ошибок обvена по I2C.
+	Lcd_SetCursor(1, 2);
+	Lcd_Print("I2cNac      = ");
+	Lcd_BinToDec(I2C_Master_GetNacCount(I2cDma.i2c), 4, LCD_CHAR_SIZE_NORM);
+
+	//Количесвто переинициализаций I2C.
+	Lcd_SetCursor(1, 3);
+	Lcd_Print("MCUi2cReInit= ");
+	Lcd_BinToDec(MCUv7_I2cResetCount, 4, LCD_CHAR_SIZE_NORM);
 
 	//Напряжения питания MCU
-	Lcd_SetCursor(1, 3);
+	Lcd_SetCursor(1, 4);
 	Lcd_Print("MCU_Vin  = ");
 	Lcd_BinToDec(MCUv7_SupplyVoltageVal, 5, LCD_CHAR_SIZE_NORM);
 	Lcd_Print(" mV");
 
 	//Значение энкодера MCUv7.
-	Lcd_SetCursor(1, 4);
+	Lcd_SetCursor(1, 5);
 	Lcd_Print("MCU_Enc  = ");
 	Lcd_BinToDec(MCUv7_EncoderVal, 6, LCD_CHAR_SIZE_NORM);
 
 	//Значение оптических датчиков
-	Lcd_SetCursor(1, 5);
+	Lcd_SetCursor(1, 6);
 	Lcd_Print("MCU_Sense= ");
 	Lcd_u32ToHex(MCUv7_Sense);
 
 	//Вывод темперетуры DS18B20.
-	Temperature_Display(&Sensor_1, 1, 6);
-	Temperature_Display(&Sensor_2, 1, 7);
+	Temperature_Display(&Sensor_1, 1, 7);
+	Temperature_Display(&Sensor_2, 1, 8);
 //	Temperature_Display(&Sensor_3, 1, 6);
 
 	//Кнопка энкодера.
-	IncrementOnEachPass(&ButtonPressCount, Encoder.BUTTON_STATE);
-	Lcd_SetCursor(1, 8);
-	Lcd_Print("Button=");
-	Lcd_BinToDec((uint16_t)ButtonPressCount, 4, LCD_CHAR_SIZE_NORM);
+//	IncrementOnEachPass(&ButtonPressCount, Encoder.BUTTON_STATE);
+//	Lcd_SetCursor(1, 8);
+//	Lcd_Print("Button=");
+//	Lcd_BinToDec((uint16_t)ButtonPressCount, 4, LCD_CHAR_SIZE_NORM);
 }
 //************************************************************
 void Task_UartSend(void){
@@ -467,6 +474,14 @@ void Task_RequestFromMCUv7(void){
 			request->Count   = 1;					//
 			McuResponseSize	 = 7;					//сколько байт вычитываем(Count+Cmd+Data(uint32)+CRC)
 
+			cyclCount = cmdGetResetCount;
+		break;
+		//------------------
+		case(cmdGetResetCount):
+			request->CmdCode = cmdGetResetCount;	//
+			request->Count   = 1;					//
+			McuResponseSize	 = 7;					//сколько байт вычитываем(Count+Cmd+Data(uint32)+CRC)
+
 			cyclCount = cmdArduinoMicroTS;
 		break;
 		//------------------
@@ -475,9 +490,10 @@ void Task_RequestFromMCUv7(void){
 		break;
 		//------------------
 	}
+	//-----------------------------------------
 	//Расчет CRC
 	request->Payload[request->Count-1] = CRC_Calculate((uint8_t*)request, request->Count+1);
-
+	//-----------------------------------------
 	//Перадача команды в MCUv7
 	uint32_t err = I2C_StartAndSendDeviceAddr(MCUv7_I2C, MCUv7_I2C_ADDR|I2C_MODE_WRITE);
 		 if(err == I2C_ERR_ADDR) return;//Если нет Ack то выходим.
@@ -486,12 +502,10 @@ void Task_RequestFromMCUv7(void){
 		I2C_DMA_Init(&I2cDma); //Повторная инициализация I2C.
 		return;
 	}
-//	I2C_SendData(MCUv7_I2C, (uint8_t*)request, request->Count+2);
 	I2C_SendDataWithoutStop(MCUv7_I2C, (uint8_t*)request, request->Count+2);
-
-	//Чтение ответа от MCUv7 на команду через 1 мС.
-//	RTOS_SetTask(Task_ReadResponseFromMCU, 1, 0);
-
+//	I2C_SendData(MCUv7_I2C, (uint8_t*)request, request->Count+2);
+//	MICRO_DELAY(10);
+	//-----------------------------------------
 	//Чтение ответа на команду от MCUv7 с помощью DMA.
 	I2cDma.slaveAddr = MCUv7_I2C_ADDR;
 	I2cDma.rxBufSize = McuResponseSize;
@@ -500,6 +514,10 @@ void Task_RequestFromMCUv7(void){
 		for(uint32_t i = 0; i < McuResponseSize; i++) *(I2cDma.pRxBuf+i) = 0;//Очистка буфера.
 		I2C_DMA_Init(&I2cDma);
 	}
+	//-----------------------------------------
+	//Чтение ответа от MCUv7 на команду через 1 мС.
+//	RTOS_SetTask(Task_ReadResponseFromMCU, 1, 0);
+	//-----------------------------------------
 }
 //************************************************************
 void I2cRxParsing(void){
@@ -547,8 +565,11 @@ void I2cRxParsing(void){
 			MCUv7_Sense = *(uint32_t *)&response->Payload[0];
 		break;
 		//------------------
+		case(cmdGetResetCount):
+			MCUv7_I2cResetCount = *(uint32_t *)&response->Payload[0];
+		break;
+		//------------------
 		default:
-
 		break;
 		//------------------
 	}
@@ -570,15 +591,13 @@ void Task_LcdUpdate(void){
 	switch(encoder){
 		//--------------------
 		case 0:
-			//RTOS_SetTask(Task_STM32_Master_Read,   5,  0);
-			//RTOS_SetTask(Task_STM32_Master_Write,  10, 0);
-			RTOS_SetTask(Task_RequestFromMCUv7,     5, 0);
-			RTOS_SetTask(Task_Temperature_Display, 10, 0);
+			RTOS_SetTask(Task_RequestFromMCUv7, 1, 0);
+			RTOS_SetTask(Task_MCUv7DataDisplay, 3, 0);
 		break;
 		//--------------------
 		case 1:
-			//RTOS_SetTask(Task_DS2782,	  	  5,  0);
-			RTOS_SetTask(Task_DS2782_Display, 10, 0);
+			//RTOS_SetTask(Task_DS2782,	  	  1,  0);
+			RTOS_SetTask(Task_DS2782_Display, 3, 0);
 		break;
 		//--------------------
 		default:
@@ -641,8 +660,8 @@ int main(void){
 	//***********************************************
 	//Ини-я диспетчера.
 	RTOS_Init();
-	RTOS_SetTask(Task_LcdUpdate, 0, 25);
-	//***********************************************
+	RTOS_SetTask(Task_LcdUpdate, 0, 5);
+
 	SysTick_Init();
 	__enable_irq();
 	//**************************************************************
@@ -664,4 +683,4 @@ void SysTick_IT_Handler(void){
 	Encoder_ScanLoop(&Encoder);
 }
 //*******************************************************************************************
-//******************************************************************************************
+//*******************************************************************************************
