@@ -314,8 +314,8 @@ void I2C_IT_Init(I2C_IT_t *i2cIt){
 	else if(i2cIt->i2c == I2C2)  i2c2_IT_Define = i2cIt;
 	else return;
 
-	if(i2cIt->i2cMode == I2C_MODE_MASTER) I2C_Master_Init(i2cIt->i2c, i2cIt->i2cGpioRemap);
-	else								  I2C_Slave_Init (i2cIt->i2c, i2cIt->i2cGpioRemap, i2cIt->slaveAddr);
+	if(i2cIt->i2cMode == I2C_MODE_MASTER) I2C_Master_Init(i2cIt->i2c, i2cIt->gpioRemap);
+	else								  I2C_Slave_Init (i2cIt->i2c, i2cIt->gpioRemap, i2cIt->slaveAddr);
 	//Инициализация прерывания.
 	i2cIt->i2c->CR2 |= I2C_CR2_ITEVTEN | //Разрешение прерывания по событию.
 					   I2C_CR2_ITERREN;  //Разрешение прерывания по ошибкам.
@@ -432,7 +432,7 @@ static void I2C_IT_Event(I2C_IT_t *i2cIt){
 			{
 				i2c->CR2 &= ~I2C_CR2_ITBUFEN;//Запрет прерывания по опостощению буфера Tx.
 				i2c->CR1 |= I2C_CR1_STOP;    //Формируем Stop
-				i2cIt->i2cItState = 0;
+				i2cIt->ITState    = 0;
 				i2cIt->txBufIndex = 0;
 			}
 		}
@@ -479,8 +479,8 @@ static void I2C_IT_Event(I2C_IT_t *i2cIt){
 		_i2c_ClearFlags(i2c);	  //сбрасываем бит STOPF
 		i2c->CR1 &= ~I2C_CR1_STOP;//
 
-		i2cIt->i2cRxCallback();//Обработка принятого пакета
-		i2cIt->i2cItState = 0;
+		i2cIt->i2cSlaveRxCpltCallback();//Обработка принятого пакета
+		i2cIt->ITState = 0;
 		i2cIt->rxBufIndex = 0;
 		return;
 	}
@@ -593,12 +593,12 @@ void I2C_DMA_Init(I2C_IT_t *i2cIt){
 
 	I2C_IT_Init(i2cIt);
 	RCC->AHBENR |= RCC_AHBENR_DMA1EN;//Enable the peripheral clock DMA1
-	i2cIt->i2cDmaState = I2C_DMA_READY;
+	i2cIt->DMAState = I2C_DMA_READY;
 }
 //**********************************************************
 uint32_t I2C_DMA_GetState(I2C_IT_t *i2cIt){
 
-	return i2cIt->i2cDmaState;
+	return i2cIt->DMAState;
 }
 //**********************************************************
 //I2C_DMA_State_t I2C_DMA_Write(I2C_TypeDef *i2c, uint32_t deviceAddr, uint32_t regAddr, uint8_t *pBuf, uint32_t size){
@@ -607,7 +607,7 @@ uint32_t I2C_DMA_Write(I2C_IT_t *i2cIt){
 	DMA_Channel_TypeDef *dma;
 	I2C_TypeDef *i2c = i2cIt->i2c;
 	//------------------------------
-	if(i2cIt->i2cDmaState != I2C_DMA_READY) return I2C_DMA_BUSY;
+	if(i2cIt->DMAState != I2C_DMA_READY) return I2C_DMA_BUSY;
 
 	__disable_irq();
 	//DMA1Channel config
@@ -628,7 +628,8 @@ uint32_t I2C_DMA_Write(I2C_IT_t *i2cIt){
 				 //DMA_CCR_HTIE | 		 	//HTIE: Half transfer interrupt enable
 				 DMA_CCR_TCIE;// | 		 	//TCIE: Transfer complete interrupt enable
 				 //DMA_CCR_EN;			 	//EN: Channel enable
-	NVIC_SetPriority(DMA1_Channel6_IRQn, 1);//Set priority
+	//NVIC_SetPriority(DMA1_Channel6_IRQn, 1);//Set priority
+	NVIC_SetPriority(DMA1_Channel6_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 1, 0));
 	NVIC_EnableIRQ(DMA1_Channel6_IRQn);     //Enable DMA1_Channel6_IRQn
 
 	i2c->CR2 |= I2C_CR2_DMAEN;//DMAEN(DMA requests enable)
@@ -642,7 +643,7 @@ uint32_t I2C_DMA_Write(I2C_IT_t *i2cIt){
 	i2c->DR = (uint8_t)i2cIt->slaveRegAddr;
 
 	dma->CCR |= DMA_CCR_EN;//DMA Channel enable
-	i2cIt->i2cDmaState = I2C_DMA_BUSY;
+	i2cIt->DMAState = I2C_DMA_BUSY;
 	__enable_irq();
 	return I2C_DMA_BUSY;
 }
@@ -652,7 +653,7 @@ uint32_t I2C_DMA_Read (I2C_IT_t *i2cIt){
 	DMA_Channel_TypeDef *dma;
 	I2C_TypeDef *i2c = i2cIt->i2c;
 	//------------------------------
-	if(i2cIt->i2cDmaState != I2C_DMA_READY) return I2C_DMA_BUSY;
+	if(i2cIt->DMAState != I2C_DMA_READY) return I2C_DMA_BUSY;
 
 	__disable_irq();
 	//DMA1Channel config
@@ -673,7 +674,9 @@ uint32_t I2C_DMA_Read (I2C_IT_t *i2cIt){
 				 //DMA_CCR_HTIE | 		    //HTIE: Half transfer interrupt enable
 				 DMA_CCR_TCIE;// | 		    //TCIE: Transfer complete interrupt enable
 				//DMA_CCR_EN;			    //EN: Channel enable
-	NVIC_SetPriority(DMA1_Channel7_IRQn, 1);//Set priority
+
+	//NVIC_SetPriority(DMA1_Channel7_IRQn, 1);//Set priority
+	NVIC_SetPriority(DMA1_Channel7_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 1, 0));
 	NVIC_EnableIRQ(DMA1_Channel7_IRQn);     //Enable DMA1_Channel6_IRQn
 
 //	i2c->CR2 |= I2C_CR2_DMAEN | //DMA Requests Enable.
@@ -689,7 +692,7 @@ uint32_t I2C_DMA_Read (I2C_IT_t *i2cIt){
 				I2C_CR2_LAST;	//DMA Last Transfer.
 	i2c->CR1 |= I2C_CR1_ACK;    //to be ready for another reception
 	dma->CCR |= DMA_CCR_EN;//DMA Channel enable
-	i2cIt->i2cDmaState = I2C_DMA_BUSY;
+	i2cIt->DMAState = I2C_DMA_BUSY;
 	__enable_irq();
 	return I2C_DMA_BUSY;
 }
@@ -720,7 +723,7 @@ static void I2C_DMA_TX_Handler(I2C_IT_t *i2cIt){
 		while(!(i2cIt->i2c->SR1 & I2C_SR1_BTF)){};//Ждем отпускания флага.
 		i2cIt->i2c->CR1 |= I2C_CR1_STOP | //Формируем Stop
 					       I2C_CR1_ACK;
-		i2cIt->i2cDmaState = I2C_DMA_READY;
+		i2cIt->DMAState = I2C_DMA_READY;
 	}
 	//-------------------------
 	//Передана половина буфера
@@ -733,7 +736,7 @@ static void I2C_DMA_TX_Handler(I2C_IT_t *i2cIt){
 	if(DMA1->ISR & DMA_ISR_TEIF6)
 	{
 		DMA_ChDisableAndITFlagClear(DMA1_Channel6 ,DMA_IFCR_CTEIF6);
-		i2cIt->i2cDmaState = I2C_DMA_READY;
+		i2cIt->DMAState = I2C_DMA_READY;
 	}
 	//-------------------------
 
@@ -757,9 +760,9 @@ static void I2C_DMA_RX_Handler(I2C_IT_t *i2cIt){
 		i2cIt->i2c->CR1 |= I2C_CR1_STOP | //Формируем Stop
 				           I2C_CR1_ACK;
 
-		i2cIt->i2cRxCallback();
+		i2cIt->i2cSlaveRxCpltCallback();
 
-		i2cIt->i2cDmaState = I2C_DMA_READY;
+		i2cIt->DMAState = I2C_DMA_READY;
 	}
 	//-------------------------
 	//Передана половина буфера

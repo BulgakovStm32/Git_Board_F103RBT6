@@ -8,9 +8,13 @@ void SysTick_Init(void){
 	SysTick->LOAD = TimerTick;	//Загрузка значения.
 	SysTick->VAL  = TimerTick;	//Обнуление таймера. 
                               //При записи любого значения этот регист обнуляется, с обнулением флага COUNTFLAG. 
-	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | //Тактирование частотой процессора (24МГц).
+
+	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | //Тактирование частотой процессора (72МГц).
 					SysTick_CTRL_TICKINT_Msk   | //Рразрешение прерывания.
 					SysTick_CTRL_ENABLE_Msk;     //Резрешение таймеру считать.
+
+	NVIC_SetPriority(SysTick_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 3, 0));
+	NVIC_EnableIRQ(SysTick_IRQn);
 }
 //-----------------------------------------------------------------------------
 //Прерываени системного таймера SysTick.

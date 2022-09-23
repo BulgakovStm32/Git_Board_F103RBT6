@@ -13,10 +13,10 @@
 
 //*******************************************************************************************
 //*******************************************************************************************
-//Структура буфера.
+#define MCUv7_I2C		I2C1
+#define MCUv7_I2C_ADDR	(0x05<<1)
 
-
-
+#define PROTOCOL_I2C_REQUEST_TIMEOUT_mS		1000	//
 
 //****************************************************
 //Структура запроса.
@@ -36,11 +36,24 @@ typedef struct{
 	uint8_t	 Payload[62];	// Данные
 }MCU_Response_t;
 #pragma pack(pop)//вернули предыдущую настройку.
+//****************************************************
+//Структура данных от MCUv7
+typedef struct{
+	uint32_t EncoderVal;
+	uint32_t SupplyVoltageVal;
+	uint32_t msCount;
+	uint32_t Sense;
+	uint32_t I2cResetCount;
+	uint32_t TemperatureSense1;
+	uint32_t TemperatureSense2;
+}MCUv7_Data_t;
 //*******************************************************************************************
 //*******************************************************************************************
-
-
-
+void 	 PROTOCOL_MASTER_I2C_Init(void);
+void 	 PROTOCOL_MASTER_I2C_RequestToMCU(void);
+uint32_t PROTOCOL_MASTER_I2C_GetI2cNacCount(void);
+MCUv7_Data_t* PROTOCOL_MASTER_I2C_GetDataMCU(void);
+void 	 PROTOCOL_MASTER_I2C_IncTimeoutAndReset(void);
 
 //*******************************************************************************************
 //*******************************************************************************************

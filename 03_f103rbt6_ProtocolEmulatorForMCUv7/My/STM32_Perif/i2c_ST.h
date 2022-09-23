@@ -85,18 +85,29 @@ void I2C_Slave_Init(I2C_TypeDef *i2c, uint32_t remap, uint32_t slaveAddr);
 //*******************************************************************************************
 //*******************************************************************************************
 //Работа по прерываниям.
-#define I2C_IT_RX_BUF_LEN_MAX	32
-#define I2C_IT_TX_BUF_LEN_MAX	32
+#define I2C_IT_RX_BUF_LEN_MAX	64
+#define I2C_IT_TX_BUF_LEN_MAX	64
 
+//****************************************************
+typedef enum{
+  I2C_IT_STATE_RESET = 0,   	/*!< Peripheral is not yet Initialized         */
+  I2C_IT_STATE_READY,  			/*!< Peripheral Initialized and ready for use  */
+  I2C_IT_STATE_ADDR_MATCH,
+  I2C_IT_STATE_BUSY_TX,   		/*!< Data Transmission process is ongoing      */
+  I2C_IT_STATE_BUSY_RX,   		/*!< Data Reception process is ongoing         */
+  I2C_IT_STATE_STOP,
+}I2C_IT_State_t;
 //****************************************************
 //Структура контекста для работы с портом I2C по прерываниям.
 //#pragma pack(push, 1)//размер выравнивания в 1 байт
 typedef struct{
 	I2C_TypeDef *i2c;
-	uint32_t 	i2cMode;		// Master или Slave
-	uint32_t 	i2cGpioRemap;	// Ремап выводов для I2C1, для I2C2 ремапа нет.
-	uint32_t 	i2cItState;		//
-	uint32_t 	i2cDmaState;	//
+	uint32_t 	 i2cMode;		// Master или Slave
+	uint32_t 	 gpioRemap;		// Ремап выводов для I2C1, для I2C2 ремапа нет.
+
+	I2C_IT_State_t 	ITState;	//
+	uint32_t 		DMAState;	//
+	uint32_t	timeOut;		//таймаут между запросами. Нужно для периициализации I2C в случае зависания.
 
 	uint32_t 	slaveAddr;		// В режиме Master - адрес Slave-устройства к которому идет обращение,
 								// в режиме Slave  - адрес устройста на шине.
@@ -114,9 +125,8 @@ typedef struct{
 	uint32_t 	rxBufSize;		// размер буфера приема.
 	uint32_t	rxBufIndex;		// индекс буфера приема.
 
-	void(*i2cRxCallback)(void); //
-	void(*i2cTxCallback)(void); //
-
+	void(*i2cSlaveRxCpltCallback)(void); 	//
+	void(*i2cSlaveTxCpltCallback)(void); 	//
 }I2C_IT_t;
 //#pragma pack(pop)//вернули предыдущую настройку.
 //*******************************************************************************************
