@@ -248,6 +248,34 @@ void Task_MCUv7DataDisplay(void){
 //*******************************************************************************************
 //*******************************************************************************************
 //*******************************************************************************************
+void Task_Motor(void){
+
+	MCU_Request_t cmd;
+	//-----------------------------
+	if(PROTOCOL_MASTER_I2C_DMAState() != I2C_DMA_READY) return;
+
+	//Скорость вращения
+	cmd.CmdCode    = cmdSetMaxVelocity;//команда
+	cmd.Count      = 5;				   //Размер блока данных команды в байтах
+	*(uint32_t*)&cmd.Payload = 10;      //скрость в RPM
+	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
+
+	//Включить момент
+	cmd.CmdCode    = cmdMotorTorqueCtrl;//команда
+	cmd.Count      = 2;				    //Размер блока данных команды в байтах
+	*(uint8_t*)&cmd.Payload = 1;	    //вкл. момент
+	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
+
+	//На какой угол повернуться.
+	cmd.CmdCode    = cmdSetTargetPosition;//команда
+	cmd.Count      = 5;				      //Размер блока данных команды в байтах
+	*(int32_t*)&cmd.Payload = -60;       //угол поворота, в градусах.
+	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
+}
+//*******************************************************************************************
+//*******************************************************************************************
+//*******************************************************************************************
+//*******************************************************************************************
 void Task_LcdUpdate(void){
 
 	TIME_Calculation(&Time, PROTOCOL_MASTER_I2C_GetDataMCU()->msCount);//RTOS_GetTickCount());
@@ -290,8 +318,8 @@ int main(void){
 	MICRO_DELAY_Init();
 	USART_Init(USART1, USART1_BRR);
 
-	MICRO_DELAY(200000);//Эта задержка нужна для стабилизации напряжения патания.
-					    //Без задержки LCD-дисплей не работает.
+//	MICRO_DELAY(500000);//Эта задержка нужна для стабилизации напряжения патания.
+//					    //Без задержки LCD-дисплей не работает.
 	//***********************************************
 	//Ини-я DS2782.
 //	DS2782_Init(DS2782_I2C, I2C_GPIO_NOREMAP);
@@ -314,10 +342,45 @@ int main(void){
 	//***********************************************
 	//Инициализация I2C для работы протокола.
 	PROTOCOL_MASTER_I2C_Init();
+
+	//***********************************************
+	//Настройки вращения для MCUv7
+	MCU_Request_t cmd;
+
+	//передаточное число редуктора
+	cmd.CmdCode = cmdSetReducerRate;//команда
+	cmd.Count   = 2;				//Размер блока данных команды в байтах
+	*(uint8_t*)&cmd.Payload = 120;	//передаточное число редуктора
+	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
+
+	//Время ускорения
+	cmd.CmdCode = cmdSetAccelerationTime;//команда
+	cmd.Count   = 5;				   	 //Размер блока данных команды в байтах
+	*(uint32_t*)&cmd.Payload = 500;      //время разгона в мс.
+	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
+
+//	//Скорость вращения
+//	cmd.CmdCode = cmdSetMaxVelocity;//команда
+//	cmd.Count   = 5;				//Размер блока данных команды в байтах
+//	*(uint32_t*)&cmd.Payload = 60;  //скрость в RPM
+//	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
+
+//	//Включить момент
+//	cmd.CmdCode = cmdMotorTorqueCtrl;//команда
+//	cmd.Count   = 2;				 //Размер блока данных команды в байтах
+//	*(uint8_t*)&cmd.Payload = 1;	 //вкл. момент
+//	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
+//
+//	//На какой угол повернуться.
+//	cmd.CmdCode = cmdSetTargetPosition;//команда
+//	cmd.Count   = 5;				   //Размер блока данных команды в байтах
+//	*(int32_t*)&cmd.Payload = -360;    //угол поворота, в градусах.
+//	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
 	//***********************************************
 	//Инициализация диспетчера.
 	RTOS_Init();
 	RTOS_SetTask(Task_LcdUpdate, 0, 5);
+	RTOS_SetTask(Task_Motor,     0, 2000);
 
 	SysTick_Init();
 	__enable_irq();
@@ -335,10 +398,11 @@ int main(void){
 void SysTick_IT_Handler(void){
 
 	RTOS_TimerServiceLoop();
+	PROTOCOL_MASTER_I2C_IncTimeoutAndReset();
+
 	msDelay_Loop();
 	Blink_Loop();
 	Encoder_ScanLoop(&Encoder);
-	PROTOCOL_MASTER_I2C_IncTimeoutAndReset();
 }
 //*******************************************************************************************
 //*******************************************************************************************

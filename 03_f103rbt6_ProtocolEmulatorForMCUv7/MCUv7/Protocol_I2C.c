@@ -110,14 +110,13 @@ void PROTOCOL_MASTER_I2C_RequestToMCU(void){
 	//LedPC13Toggel();
 	switch(cyclCount){
 		//------------------
-//		case(0):
-//			mcuI2cTxBuf[0] = 0x00;
-//			mcuI2cTxBuf[1] = 0x01;
-//			mcuI2cTxBuf[2] = 0xCE;
-//			txSize = 3;
-//			rxSize = 16;
+//		case(cmdSetTargetPosition):
+//			request->CmdCode = cmdSetTargetPosition;//
+//			request->Count   = 7;					//кол-во байтов в запросе
+//			*(uint32_t*)&request->Payload = 360;	//
+//			responseSize	 = 3;					//сколько байт вычитываем(Count+Cmd+Data(uint32)+CRC)
 //
-//			cyclCount++;
+//			cyclCount = cmdArduinoMicroTS;
 //		break;
 		//------------------
 		case(cmdArduinoMicroTS):
@@ -206,6 +205,30 @@ void PROTOCOL_MASTER_I2C_RequestToMCU(void){
 	}
 }
 //****************************************************
+void PROTOCOL_MASTER_I2C_SendCmdToMCU(MCU_Request_t *cmd){
+
+	uint32_t errCount = 0;
+	//-----------------------------
+	//Расчет CRC
+	cmd->Payload[cmd->Count-1] = CRC_Calculate((uint8_t*)cmd, cmd->Count+1);
+	//Перадача команды в MCUv7
+	//Пытаемся передать адрес три раза
+	while(I2C_StartAndSendDeviceAddr(I2cProtocol.i2c, I2cProtocol.slaveAddr|I2C_MODE_WRITE) != I2C_OK)
+	{
+		if(++errCount >= 3)
+		{
+			PROTOCOL_MASTER_I2C_Init();//Повторная инициализация I2C.
+			return;
+		}
+	}
+	I2C_SendDataWithoutStop(I2cProtocol.i2c, (uint8_t*)cmd, cmd->Count+2);
+	I2C_Stop(I2cProtocol.i2c);
+	//-----------------------------------------
+	//Блокирующее чтение ответа на команду от MCUv7.
+//	I2C_StartAndSendDeviceAddr(MCUv7_I2C, MCUv7_I2C_ADDR|I2C_MODE_READ);
+//	I2C_ReadData(I2cProtocol.i2c, I2cProtocol.pTxBuf, sizeResp);
+}
+//****************************************************
 uint32_t PROTOCOL_MASTER_I2C_GetI2cNacCount(void){
 
 	return I2C_Master_GetNacCount(I2cProtocol.i2c);
@@ -216,10 +239,15 @@ MCUv7_Data_t* PROTOCOL_MASTER_I2C_GetDataMCU(void){
 	return &MCUc7Data;
 }
 //**********************************************************
+uint32_t PROTOCOL_MASTER_I2C_DMAState(void){
+
+	return I2cProtocol.DMAState;
+}
+//**********************************************************
 void PROTOCOL_MASTER_I2C_IncTimeoutAndReset(void){
 
-	//Счетсик I2cProtocol.timeOut сбрасывается в I2cRxParsing
-	//при совпадении CRC.
+	//-----------------------------------------
+	//Счетсик timeOut сбрасывается в I2cRxParsing при совпадении CRC.
 	I2cProtocol.timeOut++;
 	if(I2cProtocol.timeOut >= PROTOCOL_I2C_REQUEST_TIMEOUT_mS)
 	{
@@ -227,8 +255,10 @@ void PROTOCOL_MASTER_I2C_IncTimeoutAndReset(void){
 		//I2cProtocol.resetCount++;
 		//I2C_IT_Init(&I2cWire);
 		//I2C_DMA_Init(&I2cWire);
+		PROTOCOL_MASTER_I2C_Init();//Повторная инициализация I2C.
 		LedPC13Toggel();//Индикация отсутствия обмена.
 	}
+	//-----------------------------------------
 	//Индикация обмена. Мигаем светодиодом.
 	static uint32_t ledCount = 0;
 	if(ledFlag)
@@ -240,6 +270,7 @@ void PROTOCOL_MASTER_I2C_IncTimeoutAndReset(void){
 			LedPC13Toggel();
 		}
 	}
+	//-----------------------------------------
 }
 //*******************************************************************************************
 //*******************************************************************************************

@@ -47,7 +47,6 @@ static void Lm6063LcdSendByte(uint8_t byte, uint8_t cmd){
 void Lm6063LcdInit(void){
   
 	SPI_Init(LM6063_SPI);
-
 	Lm6063LcdGpioInit();
 	
 //	msDelay(5);//delay_ms(1);

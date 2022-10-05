@@ -14,7 +14,7 @@
 //*******************************************************************************************
 //*******************************************************************************************
 #define MCUv7_I2C		I2C1
-#define MCUv7_I2C_ADDR	(0x05<<1)
+#define MCUv7_I2C_ADDR	(0x06<<1)
 
 #define PROTOCOL_I2C_REQUEST_TIMEOUT_mS		1000	//
 
@@ -51,8 +51,10 @@ typedef struct{
 //*******************************************************************************************
 void 	 PROTOCOL_MASTER_I2C_Init(void);
 void 	 PROTOCOL_MASTER_I2C_RequestToMCU(void);
+void 	 PROTOCOL_MASTER_I2C_SendCmdToMCU(MCU_Request_t *cmd);
 uint32_t PROTOCOL_MASTER_I2C_GetI2cNacCount(void);
 MCUv7_Data_t* PROTOCOL_MASTER_I2C_GetDataMCU(void);
+uint32_t PROTOCOL_MASTER_I2C_DMAState(void);
 void 	 PROTOCOL_MASTER_I2C_IncTimeoutAndReset(void);
 
 //*******************************************************************************************
