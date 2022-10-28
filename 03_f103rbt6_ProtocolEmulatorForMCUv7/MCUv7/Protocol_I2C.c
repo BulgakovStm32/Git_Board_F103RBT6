@@ -211,8 +211,7 @@ void PROTOCOL_MASTER_I2C_SendCmdToMCU(MCU_Request_t *cmd){
 	//-----------------------------
 	//Расчет CRC
 	cmd->Payload[cmd->Count-1] = CRC_Calculate((uint8_t*)cmd, cmd->Count+1);
-	//Перадача команды в MCUv7
-	//Пытаемся передать адрес три раза
+	//Перадача команды в MCUv7. Пытаемся передать адрес три раза.
 	while(I2C_StartAndSendDeviceAddr(I2cProtocol.i2c, I2cProtocol.slaveAddr|I2C_MODE_WRITE) != I2C_OK)
 	{
 		if(++errCount >= 3)

@@ -251,25 +251,30 @@ void Task_MCUv7DataDisplay(void){
 void Task_Motor(void){
 
 	MCU_Request_t cmd;
+	static uint32_t flag = 0;
 	//-----------------------------
 	if(PROTOCOL_MASTER_I2C_DMAState() != I2C_DMA_READY) return;
 
 	//Скорость вращения
-	cmd.CmdCode    = cmdSetMaxVelocity;//команда
-	cmd.Count      = 5;				   //Размер блока данных команды в байтах
-	*(uint32_t*)&cmd.Payload = 10;      //скрость в RPM
+	cmd.CmdCode = cmdSetMaxVelocity;//команда
+	cmd.Count   = 5;				//Размер блока данных команды в байтах
+	*(uint32_t*)&cmd.Payload = 20;  //скрость в RPM
 	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
 
 	//Включить момент
-	cmd.CmdCode    = cmdMotorTorqueCtrl;//команда
-	cmd.Count      = 2;				    //Размер блока данных команды в байтах
-	*(uint8_t*)&cmd.Payload = 1;	    //вкл. момент
+	cmd.CmdCode = cmdMotorTorqueCtrl;//команда
+	cmd.Count   = 2;				 //Размер блока данных команды в байтах
+	*(uint8_t*)&cmd.Payload = 1;	 //вкл. момент
 	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
 
 	//На какой угол повернуться.
-	cmd.CmdCode    = cmdSetTargetPosition;//команда
-	cmd.Count      = 5;				      //Размер блока данных команды в байтах
-	*(int32_t*)&cmd.Payload = -60;       //угол поворота, в градусах.
+	cmd.CmdCode = cmdSetTargetPosition; //команда
+	cmd.Count   = 5;				    //Размер блока данных команды в байтах
+
+	if(flag) *(int32_t*)&cmd.Payload = -60; //угол поворота, в градусах.
+	else     *(int32_t*)&cmd.Payload =  60;
+	flag ^= 1;
+
 	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
 }
 //*******************************************************************************************
@@ -318,8 +323,8 @@ int main(void){
 	MICRO_DELAY_Init();
 	USART_Init(USART1, USART1_BRR);
 
-//	MICRO_DELAY(500000);//Эта задержка нужна для стабилизации напряжения патания.
-//					    //Без задержки LCD-дисплей не работает.
+	MICRO_DELAY(1000000);//Эта задержка нужна для стабилизации напряжения патания.
+					     //Без задержки LCD-дисплей не работает.
 	//***********************************************
 	//Ини-я DS2782.
 //	DS2782_Init(DS2782_I2C, I2C_GPIO_NOREMAP);
@@ -347,13 +352,13 @@ int main(void){
 	//Настройки вращения для MCUv7
 	MCU_Request_t cmd;
 
-	//передаточное число редуктора
+		//передаточное число редуктора
 	cmd.CmdCode = cmdSetReducerRate;//команда
 	cmd.Count   = 2;				//Размер блока данных команды в байтах
-	*(uint8_t*)&cmd.Payload = 120;	//передаточное число редуктора
+	*(uint8_t*)&cmd.Payload = 6;	//передаточное число редуктора
 	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
 
-	//Время ускорения
+		//Время ускорения
 	cmd.CmdCode = cmdSetAccelerationTime;//команда
 	cmd.Count   = 5;				   	 //Размер блока данных команды в байтах
 	*(uint32_t*)&cmd.Payload = 500;      //время разгона в мс.
