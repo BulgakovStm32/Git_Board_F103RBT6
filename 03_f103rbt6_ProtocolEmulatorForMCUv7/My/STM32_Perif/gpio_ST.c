@@ -9,33 +9,38 @@ static volatile uint16_t GpioCState = 0; //
 //Инициализация переферии.
 void Gpio_Init (void){
   
-  //Включаем тактирование порта A, B, C, D и модуля альтернативных функций.
-  RCC->APB2ENR |= (RCC_APB2ENR_IOPAEN |
-                   RCC_APB2ENR_IOPBEN |
-                   RCC_APB2ENR_IOPCEN |
-                   RCC_APB2ENR_IOPDEN |
-                   RCC_APB2ENR_AFIOEN);
-  //Отключение JTAG-D от порта PA15, отладка через SWD активна.
-  AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_JTAGDISABLE; 
-  //--------------------
-  //Настройка вывода MCO(PA8) для вывода на нее системной частоты SYSCLK.
+	//Включаем тактирование порта A, B, C, D и модуля альтернативных функций.
+	RCC->APB2ENR |= (RCC_APB2ENR_IOPAEN |
+				   RCC_APB2ENR_IOPBEN |
+				   RCC_APB2ENR_IOPCEN |
+				   RCC_APB2ENR_IOPDEN |
+				   RCC_APB2ENR_AFIOEN);
+	//Отключение JTAG-D от порта PA15, отладка через SWD активна.
+	AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_JTAGDISABLE;
+	//--------------------
+	//Настройка вывода MCO(PA8) для вывода на нее системной частоты SYSCLK.
 //  GPIOA->CRH &= ~GPIO_CRH_CNF8;
 //  GPIOA->CRH |= GPIO_CRH_CNF8_1; //PA8 -выход, альтернативный режим push-pull.
 //  GPIOA->CRH |= GPIO_CRH_MODE8;	 //PA8 -выход, тактирование 50МГц.
 //
 //  RCC->CFGR |= RCC_CFGR_MCO_SYSCLK;//Подключение к выводу PA8 системную частоту.
-  //RCC->CFGR |= RCC_CFGR_MCO_HSI;   //Подключение к выводу PA8 частоту HSI.
-  //RCC->CFGR |= RCC_CFGR_MCO_HSE;      //Подключение к выводу PA8 частоту HSE.
-  //RCC->CFGR |= RCC_CFGR_MCO_PLL;   //Подключение к выводу PA8 частоту PLL/2. 
-  //--------------------
-  //PC13 - Led.
-  GPIOC->CRH &= ~GPIO_CRH_CNF13;//выход, режим - push-pull.
-  GPIOC->CRH |= (GPIO_CRH_MODE13_1 );//GPIO_CRH_MODE13;//тактирование 2МГц.-так меньже звон
-  //--------------------
-  //PA6 - Led.
-  //PA7 - Led.
-  GPIOA->CRL &= ~(GPIO_CRL_CNF6  | GPIO_CRL_CNF7); //выход, режим - push-pull.
-  GPIOA->CRL |=  (GPIO_CRL_MODE6 | GPIO_CRL_MODE7); //PA7(LC2_SOST_Red) - тактирование 50МГц.
+	//RCC->CFGR |= RCC_CFGR_MCO_HSI;   //Подключение к выводу PA8 частоту HSI.
+	//RCC->CFGR |= RCC_CFGR_MCO_HSE;      //Подключение к выводу PA8 частоту HSE.
+	//RCC->CFGR |= RCC_CFGR_MCO_PLL;   //Подключение к выводу PA8 частоту PLL/2.
+	//--------------------
+	//PC13 - Led.
+	GPIOC->CRH &= ~GPIO_CRH_CNF13;//выход, режим - push-pull.
+	GPIOC->CRH |= (GPIO_CRH_MODE13_1 );//GPIO_CRH_MODE13;//тактирование 2МГц.-так меньже звон
+	//--------------------
+	//PA6 - Led.
+	//PA7 - Led.
+	GPIOA->CRL &= ~(GPIO_CRL_CNF6  | GPIO_CRL_CNF7); //выход, режим - push-pull.
+	GPIOA->CRL |=  (GPIO_CRL_MODE6 | GPIO_CRL_MODE7); //PA7(LC2_SOST_Red) - тактирование 50МГц.
+	//--------------------
+	//PB0 - BigBoardPwr.
+	BigBoardPwr_GPIO->CRL &= ~GPIO_CRL_CNF0;  //выход, режим - push-pull.
+	BigBoardPwr_GPIO->CRL |=  GPIO_CRL_MODE0; //тактирование 2МГц.-так меньже звон
+
 
 
   //JQ6500

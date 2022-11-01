@@ -12,7 +12,7 @@
 //*******************************************************************************************
 //*******************************************************************************************
 
-static I2C_IT_t		I2cProtocol;
+static I2C_IT_t	 	I2cProtocol;
 static MCUv7_Data_t MCUc7Data;
 
 static uint32_t responseSize = 0;
@@ -20,7 +20,6 @@ static uint32_t ledFlag      = 0;
 
 //*******************************************************************************************
 //*******************************************************************************************
-//************************************************************
 static void I2cRxParsing(void){
 
 	MCU_Response_t *response = (MCU_Response_t *)I2cProtocol.pRxBuf;
@@ -35,12 +34,16 @@ static void I2cRxParsing(void){
 	//Разбор пришедшего пакета
 	switch(response->CmdCode){
 		//------------------
-		case(cmdArduinoMicroTS):
+		case(cmdGetMillisCount):
 			MCUc7Data.msCount = *(uint32_t*)&response->Payload[0];
 		break;
 		//------------------
-		case(cmdGetEncoderPosition):
-			MCUc7Data.EncoderVal = *(uint32_t *)&response->Payload[2];
+		case(cmdGetEncoderCode):
+			MCUc7Data.EncoderCode = *(uint32_t *)&response->Payload[2];
+		break;
+		//------------------
+		case(cmdGetEncoderAngle):
+			MCUc7Data.EncoderAngle = *(uint32_t *)&response->Payload[2];
 		break;
 		//------------------
 		case(cmdGetTemperature):
@@ -48,14 +51,18 @@ static void I2cRxParsing(void){
 			{
 				MCUc7Data.TemperatureSense1  = (uint32_t)( response->Payload[0] << 24); //знак
 				MCUc7Data.TemperatureSense1 |= (uint32_t)((response->Payload[1] << 8) | //темперетура
-														   response->Payload[2]);
+														   response->Payload[2]);		//
 			}
 			else if(response->Payload[3] == 2)// Датчик 2
 			{
 				MCUc7Data.TemperatureSense2  = (uint32_t)( response->Payload[0] << 24); //знак
 				MCUc7Data.TemperatureSense2 |= (uint32_t)((response->Payload[1] << 8) | //темперетура
-														   response->Payload[2]);
+														   response->Payload[2]);		//
 			}
+		break;
+		//------------------
+		case(cmdGetSystemCtrlReg):
+			*(uint32_t*)&MCUc7Data.SystemCtrlReg = *(uint32_t *)&response->Payload[0];
 		break;
 		//------------------
 		case(cmdGetSupplyVoltage):
@@ -103,52 +110,40 @@ void PROTOCOL_MASTER_I2C_Init(void){
 //************************************************************
 void PROTOCOL_MASTER_I2C_RequestToMCU(void){
 
-	static uint32_t cyclCount = cmdArduinoMicroTS;
+	static uint32_t cyclCount = cmdGetMillisCount;
+	static uint32_t flag = 0;
 	MCU_Request_t   *request  = (MCU_Request_t *)I2cProtocol.pTxBuf; //I2cDma.pTxBuf;
 	//-----------------------------
 	//Индикация передачи
 	//LedPC13Toggel();
 	switch(cyclCount){
 		//------------------
-//		case(cmdSetTargetPosition):
-//			request->CmdCode = cmdSetTargetPosition;//
-//			request->Count   = 7;					//кол-во байтов в запросе
-//			*(uint32_t*)&request->Payload = 360;	//
-//			responseSize	 = 3;					//сколько байт вычитываем(Count+Cmd+Data(uint32)+CRC)
-//
-//			cyclCount = cmdArduinoMicroTS;
-//		break;
-		//------------------
-		case(cmdArduinoMicroTS):
-			request->CmdCode = cmdArduinoMicroTS;	//
+		case(cmdGetMillisCount):
+			request->CmdCode = cmdGetMillisCount;	//
 			request->Count   = 1;					//кол-во байтов в запросе
 			responseSize	 = 7;					//сколько байт вычитываем(Count+Cmd+Data(uint32)+CRC)
 
-			cyclCount = cmdGetEncoderPosition;
+			cyclCount = cmdGetEncoderAngle;
 		break;
 		//------------------
-		case(cmdGetEncoderPosition):
-			request->CmdCode 	= cmdGetEncoderPosition;//
-			request->Count   	= 1;					//кол-во байтов в запросе
-			responseSize	 	= 17;					//сколько байт вычитываем(Count+Cmd+Data+CRC)
+		case(cmdGetEncoderAngle):
+			request->CmdCode = cmdGetEncoderAngle;//
+			request->Count   = 1;				  //кол-во байтов в запросе
+			responseSize	 = 17;				  //сколько байт вычитываем(Count+Cmd+Data+CRC)
 
-			cyclCount= cmdGetTemperature;
+			cyclCount = cmdGetTemperature;
 		break;
 		//------------------
 		case(cmdGetTemperature):
-			request->CmdCode 	= cmdGetTemperature;	//
-			request->Count   	= 2;					//кол-во байтов в запросе
-			request->Payload[0] = 1;				    //sensor_number
-			responseSize	 	= 7;					//сколько байт вычитываем(Count+Cmd+Data+CRC)
+			request->CmdCode = cmdGetTemperature; //
+			request->Count   = 2;				  //кол-во байтов в запросе
 
-			cyclCount++;
-		break;
-		//------------------
-		case(cmdGetTemperature+1):
-			request->CmdCode 	= cmdGetTemperature;	//
-			request->Count   	= 2;					//кол-во байтов в запросе
-			request->Payload[0] = 2;				    //sensor_number
-			responseSize	 	= 7;					//сколько байт вычитываем(Count+Cmd+Data+CRC)
+			//sensor_number
+			if(flag) request->Payload[0] = 1;
+			else	 request->Payload[0] = 2;
+			flag ^= 1;
+
+			responseSize = 7;					//сколько байт вычитываем(Count+Cmd+Data+CRC)
 
 			cyclCount = cmdGetSupplyVoltage;
 		break;
@@ -174,11 +169,20 @@ void PROTOCOL_MASTER_I2C_RequestToMCU(void){
 			request->Count   = 1;					//
 			responseSize	 = 7;					//сколько байт вычитываем(Count+Cmd+Data(uint32)+CRC)
 
-			cyclCount = cmdArduinoMicroTS;
+			cyclCount = cmdGetSystemCtrlReg;
+		break;
+		//------------------
+		case(cmdGetSystemCtrlReg):
+			request->CmdCode = cmdGetSystemCtrlReg;	//
+			request->Count   = 1;					//кол-во байтов в запросе
+			responseSize	 = 7;					//сколько байт вычитываем
+													//(Count+Cmd+Data(uint32)+CRC)
+			cyclCount = cmdGetMillisCount;
 		break;
 		//------------------
 		default:
-			cyclCount = 0;
+			cyclCount = cmdGetMillisCount;
+			return;
 		break;
 		//------------------
 	}

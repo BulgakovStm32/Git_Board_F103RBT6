@@ -53,7 +53,7 @@ void Temperature_Display(DS18B20_t *sensor, uint8_t cursor_x, uint8_t cursor_y){
 	uint32_t temperature = sensor->TEMPERATURE;
 	//-------------------
 	Lcd_SetCursor(cursor_x, cursor_y);
-	Lcd_Print("MCU_T");
+	Lcd_Print("T");
 	Lcd_BinToDec(sensor->SENSOR_NUMBER, 1, LCD_CHAR_SIZE_NORM);
 	Lcd_Print("   = ");
 	if(TemperatureSens_Sign(sensor) & DS18B20_SIGN_NEGATIVE)Lcd_Chr('-');
@@ -204,28 +204,28 @@ void Task_MCUv7DataDisplay(void){
 
 	//Вывод ошибок обvена по I2C.
 	Lcd_SetCursor(1, 2);
-	Lcd_Print("I2cNac      = ");
+	Lcd_Print("I2cNac    = ");
 	Lcd_BinToDec(PROTOCOL_MASTER_I2C_GetI2cNacCount(), 4, LCD_CHAR_SIZE_NORM);
 
 	//Количесвто переинициализаций I2C.
 	Lcd_SetCursor(1, 3);
-	Lcd_Print("MCUi2cReInit= ");
+	Lcd_Print("I2cReInit = ");
 	Lcd_BinToDec(PROTOCOL_MASTER_I2C_GetDataMCU()->I2cResetCount, 4, LCD_CHAR_SIZE_NORM);
 
 	//Напряжения питания MCU
 	Lcd_SetCursor(1, 4);
-	Lcd_Print("MCU_Vin  = ");
+	Lcd_Print("Vin       = ");
 	Lcd_BinToDec(PROTOCOL_MASTER_I2C_GetDataMCU()->SupplyVoltageVal, 5, LCD_CHAR_SIZE_NORM);
 	Lcd_Print(" mV");
 
 	//Значение энкодера MCUv7.
 	Lcd_SetCursor(1, 5);
-	Lcd_Print("MCU_Enc  = ");
-	Lcd_BinToDec(PROTOCOL_MASTER_I2C_GetDataMCU()->EncoderVal, 6, LCD_CHAR_SIZE_NORM);
+	Lcd_Print("EncAngle  = ");
+	Lcd_BinToDec(PROTOCOL_MASTER_I2C_GetDataMCU()->EncoderAngle, 6, LCD_CHAR_SIZE_NORM);
 
 	//Значение оптических датчиков
 	Lcd_SetCursor(1, 6);
-	Lcd_Print("MCU_Sense= ");
+	Lcd_Print("Sense= ");
 	Lcd_u32ToHex(PROTOCOL_MASTER_I2C_GetDataMCU()->Sense);
 
 	//Вывод темперетуры DS18B20.
@@ -252,13 +252,26 @@ void Task_Motor(void){
 
 	MCU_Request_t cmd;
 	static uint32_t flag = 0;
+	int32_t temp;
 	//-----------------------------
 	if(PROTOCOL_MASTER_I2C_DMAState() != I2C_DMA_READY) return;
+
+	//передаточное число редуктора
+	cmd.CmdCode = cmdSetReducerRate;//команда
+	cmd.Count   = 2;				//Размер блока данных команды в байтах
+	*(uint8_t*)&cmd.Payload = 6;	//передаточное число редуктора
+	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
+
+	//Время ускорения
+	cmd.CmdCode = cmdSetAccelerationTime;//команда
+	cmd.Count   = 5;				   	 //Размер блока данных команды в байтах
+	*(uint32_t*)&cmd.Payload = 500;      //время разгона в мс.
+	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
 
 	//Скорость вращения
 	cmd.CmdCode = cmdSetMaxVelocity;//команда
 	cmd.Count   = 5;				//Размер блока данных команды в байтах
-	*(uint32_t*)&cmd.Payload = 20;  //скрость в RPM
+	*(uint32_t*)&cmd.Payload = 10;  //скрость в RPM
 	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
 
 	//Включить момент
@@ -271,9 +284,10 @@ void Task_Motor(void){
 	cmd.CmdCode = cmdSetTargetPosition; //команда
 	cmd.Count   = 5;				    //Размер блока данных команды в байтах
 
-	if(flag) *(int32_t*)&cmd.Payload = -60; //угол поворота, в градусах.
-	else     *(int32_t*)&cmd.Payload =  60;
+	if(flag) temp = -60; //угол поворота, в градусах.
+	else     temp =  60;
 	flag ^= 1;
+	*(int32_t*)&cmd.Payload = temp;
 
 	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
 }
@@ -306,6 +320,9 @@ void Task_LcdUpdate(void){
 		break;
 		//--------------------
 	}
+	//Проверка состяния системного регистра SystemCtrlReg
+	if(PROTOCOL_MASTER_I2C_GetDataMCU()->SystemCtrlReg.f_PwrOff) BigBoardPwr_Off();
+	else 														 BigBoardPwr_On();
 	//Обновление изображения на экране.
 	//Очистка видеобуфера производится на каждой странице.
 	Lcd_Update(); //вывод сделан для LM6063D
@@ -352,16 +369,16 @@ int main(void){
 	//Настройки вращения для MCUv7
 	MCU_Request_t cmd;
 
-		//передаточное число редуктора
+	//передаточное число редуктора
 	cmd.CmdCode = cmdSetReducerRate;//команда
 	cmd.Count   = 2;				//Размер блока данных команды в байтах
 	*(uint8_t*)&cmd.Payload = 6;	//передаточное число редуктора
 	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
 
-		//Время ускорения
+	//Время ускорения
 	cmd.CmdCode = cmdSetAccelerationTime;//команда
 	cmd.Count   = 5;				   	 //Размер блока данных команды в байтах
-	*(uint32_t*)&cmd.Payload = 500;      //время разгона в мс.
+	*(uint32_t*)&cmd.Payload = 100;      //время разгона в мс.
 	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
 
 //	//Скорость вращения

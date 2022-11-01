@@ -21,36 +21,43 @@
 #define LedPA7_Off()    	(GPIOA->BSRR = GPIO_BSRR_BR7)
 #define LedPA7_Toggel() 	(GPIOA->ODR ^= GPIO_ODR_ODR7)
 
-
 #define Gpio_mSConst   10//50//10
 
 #define GpioAIDR       1
 #define GpioBIDR       2
 #define GpioCIDR       3 
+//------------------------------
+//Имитация гапряжения питания БигБорда - PB14
+#define BigBoardPwr_GPIO		GPIOB
+#define BigBoardPwr_PIN			0
 
-//JQ6500/
-#define JqK1Hight     (GPIOC->BSRR = GPIO_BSRR_BS9) 
-#define JqK1Low    	  (GPIOC->BSRR = GPIO_BSRR_BR9) 
+#define BigBoardPwr_On()     	(BigBoardPwr_GPIO->BSRR = GPIO_BSRR_BS0)
+#define BigBoardPwr_Off()    	(BigBoardPwr_GPIO->BSRR = GPIO_BSRR_BR0)
+#define BigBoardPwr_Toggel() 	(BigBoardPwr_GPIO->ODR ^= GPIO_ODR_ODR0)
 
-#define JqK2Hight     (GPIOA->BSRR = GPIO_BSRR_BS8) 
-#define JqK2Low    	  (GPIOA->BSRR = GPIO_BSRR_BR8) 
-//Двухцветный светодио LC1_SOST. PB1 - LC1_SOST_Red. PB2 - LC1_SOST_Green.
-#define LC1SostRedLedOn()     	(GPIOB->BSRR = GPIO_BSRR_BS1) 
-#define LC1SostRedLedOff()    	(GPIOB->BSRR = GPIO_BSRR_BR1) 
-#define LC1SostRedLedToggel() 	(GPIOB->ODR  = GPIOB->ODR ^ GPIO_ODR_ODR1)
-
-#define LC1SostGreenLedOn()     (GPIOB->BSRR = GPIO_BSRR_BS2) 
-#define LC1SostGreenLedOff()    (GPIOB->BSRR = GPIO_BSRR_BR2) 
-#define LC1SostGreenLedToggel() (GPIOB->ODR  = GPIOB->ODR ^ GPIO_ODR_ODR2)
-
-//Двухцветный светодио LC2_SOST. PA2 - LC2_SOST_Red. PB0 - LC2_SOST_Green.
-#define LC2SostRedLedOn()     	(GPIOA->BSRR = GPIO_BSRR_BS7) 
-#define LC2SostRedLedOff()    	(GPIOA->BSRR = GPIO_BSRR_BR7) 
-#define LC2SostRedLedToggel() 	(GPIOA->ODR  = GPIOA->ODR ^ GPIO_ODR_ODR7)
-
-#define LC2SostGreenLedOn()     (GPIOB->BSRR = GPIO_BSRR_BS0) 
-#define LC2SostGreenLedOff()    (GPIOB->BSRR = GPIO_BSRR_BR0) 
-#define LC2SostGreenLedToggel() (GPIOB->ODR  = GPIOB->ODR ^ GPIO_ODR_ODR0)
+////JQ6500/
+//#define JqK1Hight     (GPIOC->BSRR = GPIO_BSRR_BS9)
+//#define JqK1Low    	  (GPIOC->BSRR = GPIO_BSRR_BR9)
+//
+//#define JqK2Hight     (GPIOA->BSRR = GPIO_BSRR_BS8)
+//#define JqK2Low    	  (GPIOA->BSRR = GPIO_BSRR_BR8)
+////Двухцветный светодио LC1_SOST. PB1 - LC1_SOST_Red. PB2 - LC1_SOST_Green.
+//#define LC1SostRedLedOn()     	(GPIOB->BSRR = GPIO_BSRR_BS1)
+//#define LC1SostRedLedOff()    	(GPIOB->BSRR = GPIO_BSRR_BR1)
+//#define LC1SostRedLedToggel() 	(GPIOB->ODR  = GPIOB->ODR ^ GPIO_ODR_ODR1)
+//
+//#define LC1SostGreenLedOn()     (GPIOB->BSRR = GPIO_BSRR_BS2)
+//#define LC1SostGreenLedOff()    (GPIOB->BSRR = GPIO_BSRR_BR2)
+//#define LC1SostGreenLedToggel() (GPIOB->ODR  = GPIOB->ODR ^ GPIO_ODR_ODR2)
+//
+////Двухцветный светодио LC2_SOST. PA2 - LC2_SOST_Red. PB0 - LC2_SOST_Green.
+//#define LC2SostRedLedOn()     	(GPIOA->BSRR = GPIO_BSRR_BS7)
+//#define LC2SostRedLedOff()    	(GPIOA->BSRR = GPIO_BSRR_BR7)
+//#define LC2SostRedLedToggel() 	(GPIOA->ODR  = GPIOA->ODR ^ GPIO_ODR_ODR7)
+//
+//#define LC2SostGreenLedOn()     (GPIOB->BSRR = GPIO_BSRR_BS0)
+//#define LC2SostGreenLedOff()    (GPIOB->BSRR = GPIO_BSRR_BR0)
+//#define LC2SostGreenLedToggel() (GPIOB->ODR  = GPIOB->ODR ^ GPIO_ODR_ODR0)
  
 //Оптореле LC. 
 //PC10 - OptSP2Att.

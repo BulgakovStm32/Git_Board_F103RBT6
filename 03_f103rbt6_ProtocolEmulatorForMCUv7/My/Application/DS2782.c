@@ -19,7 +19,7 @@ void DS2782_Init(I2C_TypeDef *i2c, uint32_t i2cRemap){
 //************************************************************
 uint16_t DS2782_ReadData(DS2782_Registers_t addrReg, uint8_t len){
 
-	uint8_t rxBuf[2] = {0};
+//	uint8_t rxBuf[2] = {0};
 	//-------------------
 //	if(I2C_Read(DS2782_I2C, DS2782_ADDR, (uint8_t)addrReg, rxBuf, len) != I2C_OK)
 //	{
@@ -38,7 +38,7 @@ void DS2782_GetI2cAddress(DS2782_t *ds){
 //************************************************************
 void DS2782_GetID(DS2782_t *ds){
 
-	uint8_t rxBuf[4] = {0};
+//	uint8_t rxBuf[4] = {0};
 	//-------------------
 //	if(I2C_Read(DS2782_I2C, DS2782_ADDR, Register_Unique_ID, rxBuf, 4) != I2C_OK)
 //	{

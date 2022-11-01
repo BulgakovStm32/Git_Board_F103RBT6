@@ -37,15 +37,29 @@ typedef struct{
 }MCU_Response_t;
 #pragma pack(pop)//вернули предыдущую настройку.
 //****************************************************
+typedef struct{
+	uint32_t PwrEvent	:2;		//PWR_EVENT (R) - событие выключения
+								//0 - ничего
+								//1 - произошёл запрос на выключение
+								//2 - происходит выключение
+
+	uint32_t f_PwrOff	:1;		//PWR_OFF (R) - бит текущего состояния выключения питания
+						   		//0 - остальные режимы работы
+						   		//1 - пришла команда cmdTurnOffPower,
+	uint32_t dummy		:28;
+}MCU_SystemCtrlReg_t;
+//****************************************************
 //Структура данных от MCUv7
 typedef struct{
-	uint32_t EncoderVal;
-	uint32_t SupplyVoltageVal;
-	uint32_t msCount;
-	uint32_t Sense;
-	uint32_t I2cResetCount;
-	uint32_t TemperatureSense1;
-	uint32_t TemperatureSense2;
+	uint32_t			EncoderCode;
+	uint32_t			EncoderAngle;
+	uint32_t 			SupplyVoltageVal;
+	uint32_t 			msCount;
+	uint32_t 			Sense;
+	uint32_t 			I2cResetCount;
+	uint32_t 			TemperatureSense1;
+	uint32_t 			TemperatureSense2;
+	MCU_SystemCtrlReg_t SystemCtrlReg;
 }MCUv7_Data_t;
 //*******************************************************************************************
 //*******************************************************************************************

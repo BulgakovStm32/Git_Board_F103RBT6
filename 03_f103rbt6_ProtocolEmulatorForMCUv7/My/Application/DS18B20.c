@@ -15,7 +15,7 @@
 //Функция задержки в микросекундах.
 __STATIC_INLINE void OneWire_usDelay(const uint32_t us){
 
-	microDelay(us);
+	MICRO_DELAY(us);
 
 //	us *= 4;  //Эти цифры подобраны эмпирическим путем для Fclk=72MHz.
 //	us += 4;
