@@ -21,18 +21,26 @@ DS18B20_t Sensor_1;
 DS18B20_t Sensor_2;
 DS2782_t  DS2782;
 Encoder_t Encoder;
-//*******************************************************************************************
-//*******************************************************************************************
-//*******************************************************************************************
-//*******************************************************************************************
-void IncrementOnEachPass(uint32_t *var, uint16_t event){
 
-		   uint16_t riseReg  = 0;
-	static uint16_t oldState = 0;
+static uint32_t redaction = 0;
+//*******************************************************************************************
+//*******************************************************************************************
+//*******************************************************************************************
+//*******************************************************************************************
+void IncrementOnEachPass(uint32_t *var, uint32_t event, uint32_t step, uint32_t max){
+
+		   uint32_t riseReg  = 0;
+	static uint32_t oldState = 0;
 	//-------------------
 	riseReg  = (oldState ^ event) & event;
 	oldState = event;
-	if(riseReg) (*var)++;
+//	if(riseReg) (*var)++;
+	if(riseReg)
+	{
+		if(step == 0) step = 1;
+		if((*var) < max) (*var)+= step;//Проверка на  максимум.
+		else             (*var) = 0;   //Закольцовывание редактирования параметра.
+	}
 }
 //************************************************************
 uint32_t Led_Blink(uint32_t millis, uint32_t period, uint32_t switch_on_time){
@@ -48,14 +56,14 @@ uint32_t Led_Blink(uint32_t millis, uint32_t period, uint32_t switch_on_time){
 	return flag;
 }
 //************************************************************
-void Temperature_Display(DS18B20_t *sensor, uint8_t cursor_x, uint8_t cursor_y){
+void Temperature_Display(uint8_t cursor_x, uint8_t cursor_y, DS18B20_t *sensor){
 
 	uint32_t temperature = sensor->TEMPERATURE;
 	//-------------------
 	Lcd_SetCursor(cursor_x, cursor_y);
-	Lcd_Print("T");
+	Lcd_Print("Temp");
 	Lcd_BinToDec(sensor->SENSOR_NUMBER, 1, LCD_CHAR_SIZE_NORM);
-	Lcd_Print("   = ");
+	Lcd_Print(":");
 	if(TemperatureSens_Sign(sensor) & DS18B20_SIGN_NEGATIVE)Lcd_Chr('-');
 	else                    								Lcd_Chr('+');
 	Lcd_BinToDec(temperature/10, 2, LCD_CHAR_SIZE_NORM);
@@ -102,32 +110,46 @@ void Task_DS2782(void){
 
 	DS2782_GetI2cAddress(&DS2782); 		//получение адреса на шине I2C
 	//DS2782_GetID(&DS2782);         		//получение Unique ID (factory option)
-	DS2782_GetTemperature(&DS2782);		//получение температуры.
- 	DS2782_GetVoltage(&DS2782);    		//получение напряжения на АКБ.
-	DS2782_GetCurrent(&DS2782);    		//получения тока потребления от АКБ.
-	DS2782_GetAverageCurrent(&DS2782);	//получения усредненного за 28 сек. тока потребления от АКБ.
-	DS2782_GetAccumulatedCurrent(&DS2782);
+//	DS2782_GetTemperature(&DS2782);		//получение температуры.
+// 	DS2782_GetVoltage(&DS2782);    		//получение напряжения на АКБ.
+//	DS2782_GetCurrent(&DS2782);    		//получения тока потребления от АКБ.
+//	DS2782_GetAverageCurrent(&DS2782);	//получения усредненного за 28 сек. тока потребления от АКБ.
+//	DS2782_GetAccumulatedCurrent(&DS2782);
 }
 //************************************************************
 void Task_DS2782_Display(void){
 
-	uint32_t temp = 0;
-
+		   uint32_t temp;
+	static uint32_t strIndex = 0;
+	//-------------------
+	//Очистка видеобуфера.
 	Lcd_ClearVideoBuffer();
-
-	//Шапка
-	Lcd_SetCursor(1, 1);
-	Lcd_Print("_DS2782_");
+	//Шапка;
+	Lcd_PrintStringAndNumber(1, 1, "_DS2782_", 0, 0);
 	//Вывод времени.
-	Time_Display(1, 2);
+	Time_Display(14, 1);
+	//----------------------------------------------
+	//По нажатию на кнопку энкодера переход к выбору редактируемого параметра.
+	IncrementOnEachPass(&redaction, ENCODER_GetButton(&Encoder), 1, 1);
+	//При редактировании параметров меню справа от редактируемого
+	//параметра выводится "<=".
+	if(redaction)
+	{
+		ENCODER_IncDecParam(&Encoder, &strIndex, 1, 0, 6);
+		Lcd_PrintStringAndNumber(20, (2 + strIndex), "<=", 0, 0);
+	}
+	else
+	{
+		strIndex = 0;
+	}
+	//----------------------------------------------
 	//Вывод ошибок обvена по I2C.
-	Lcd_SetCursor(10, 1);
-	Lcd_Print("I2CNAC=");
-//	Lcd_BinToDec(I2C_GetNacCount(DS2782_I2C), 4, LCD_CHAR_SIZE_NORM);
+	temp = I2C_Master_GetNacCount(DS2782_I2C);
+	Lcd_PrintStringAndNumber(1, 2, "I2cNac :", temp, 4);
 
 	//Вывод адреса на шине I2C
 	Lcd_SetCursor(1, 3);
-	Lcd_Print("DS2782_I2C_ADDR:");
+	Lcd_Print("I2cAddr:");
 	Lcd_Print("0x");
 	Lcd_u8ToHex(DS2782.I2C_Address);
 
@@ -193,40 +215,53 @@ void Task_DS2782_Display(void){
 //*******************************************************************************************
 void Task_MCUv7DataDisplay(void){
 
+		   uint32_t temp;
+	static uint32_t strIndex = 0;
+	//-------------------
 	//Очистка видеобуфера.
 	Lcd_ClearVideoBuffer();
-
 	//Шапка
-	Lcd_SetCursor(1, 1);
-	Lcd_Print("Emul_MCUv7");
+	Lcd_PrintStringAndNumber(1, 1,"Emul_MCUv7", 0, 0);
 	//Вывод времени.
 	Time_Display(14, 1);
+	//----------------------------------------------
+	//По нажатию на кнопку энкодера переход к выбору редактируемого параметра.
+	IncrementOnEachPass(&redaction, ENCODER_GetButton(&Encoder), 1, 1);
+	//Ходим по пунктам страницы.
+	if(redaction)
+	{
+		ENCODER_IncDecParam(&Encoder, &strIndex, 1, 0, 6);
+		Lcd_PrintStringAndNumber(20, (2 + strIndex), "<=", 0, 0);
+	}
+	else
+	{
+		strIndex = 0;
+	}
+	//----------------------------------------------
+	Lcd_PrintStringAndNumber(18, 2, '\0', strIndex, 2);
 
 	//Вывод ошибок обvена по I2C.
-	Lcd_SetCursor(1, 2);
-	Lcd_Print("I2cNac    = ");
-	Lcd_BinToDec(PROTOCOL_MASTER_I2C_GetI2cNacCount(), 4, LCD_CHAR_SIZE_NORM);
+	temp = PROTOCOL_MASTER_I2C_GetI2cNacCount();
+	Lcd_PrintStringAndNumber(1, 2, "I2cNac  : ", temp, 4);
 
-	//Количесвто переинициализаций I2C.
-	Lcd_SetCursor(1, 3);
-	Lcd_Print("I2cReInit = ");
-	Lcd_BinToDec(PROTOCOL_MASTER_I2C_GetDataMCU()->I2cResetCount, 4, LCD_CHAR_SIZE_NORM);
-
-	//Напряжения питания MCU
-	Lcd_SetCursor(1, 4);
-	Lcd_Print("Vin       = ");
-	Lcd_BinToDec(PROTOCOL_MASTER_I2C_GetDataMCU()->SupplyVoltageVal, 5, LCD_CHAR_SIZE_NORM);
-	Lcd_Print(" mV");
+	//Количество переинициализаций I2C.
+	temp = PROTOCOL_MASTER_I2C_GetDataMCU()->I2cResetCount;
+	Lcd_PrintStringAndNumber(1, 3, "I2cReset: ", temp, 4);
 
 	//Значение энкодера MCUv7.
-	Lcd_SetCursor(1, 5);
-	Lcd_Print("EncAngle  = ");
-	Lcd_BinToDec(PROTOCOL_MASTER_I2C_GetDataMCU()->EncoderAngle, 6, LCD_CHAR_SIZE_NORM);
+	temp = PROTOCOL_MASTER_I2C_GetDataMCU()->EncoderAngle;
+	Lcd_PrintStringAndNumber(1, 4, "EncAngle = ", temp, 6);
 
 	//Значение оптических датчиков
-	Lcd_SetCursor(1, 6);
-	Lcd_Print("Sense= ");
-	Lcd_u32ToHex(PROTOCOL_MASTER_I2C_GetDataMCU()->Sense);
+	temp = PROTOCOL_MASTER_I2C_GetDataMCU()->Sense;
+	Lcd_SetCursor(1, 5);
+	Lcd_Print("Sense:");
+	Lcd_u32ToHex(temp);
+
+	//Напряжения питания MCU
+	temp = PROTOCOL_MASTER_I2C_GetDataMCU()->SupplyVoltageVal;
+	Lcd_PrintStringAndNumber(1, 6, "Vin  : ", temp, 5);
+	Lcd_Print(" mV");
 
 	//Вывод темперетуры DS18B20.
 	Sensor_1.TEMPERATURE_SIGN = PROTOCOL_MASTER_I2C_GetDataMCU()->TemperatureSense1 >> 24;
@@ -235,8 +270,24 @@ void Task_MCUv7DataDisplay(void){
 	Sensor_2.TEMPERATURE_SIGN = PROTOCOL_MASTER_I2C_GetDataMCU()->TemperatureSense2 >> 24;
 	Sensor_2.TEMPERATURE      = PROTOCOL_MASTER_I2C_GetDataMCU()->TemperatureSense2 & 0x0000FFFF;
 
-	Temperature_Display(&Sensor_1, 1, 7);
-	Temperature_Display(&Sensor_2, 1, 8);
+	Temperature_Display(1, 7, &Sensor_1);
+	Temperature_Display(1, 8, &Sensor_2);
+	//----------------------------------------------
+	//Расчет процентов заряда АКБ и отображение уровня заряда.
+	#define	V_BAT_MIN_mV	10800U	//
+	#define	V_BAT_MAX_mV	16800U	//
+	#define	DEVIDER			(V_BAT_MAX_mV - V_BAT_MIN_mV)
+
+	temp = PROTOCOL_MASTER_I2C_GetDataMCU()->SupplyVoltageVal;
+	if(temp < V_BAT_MIN_mV) temp = V_BAT_MIN_mV;
+	uint32_t percent = ((100000 * (temp - V_BAT_MIN_mV)) / DEVIDER) / 1000;
+
+	if(percent > 100) percent = 100;
+	Lcd_SetCursor(16, 7);
+	Lcd_PrintBig("%");
+	Lcd_BinToDec(percent, 3, LCD_CHAR_SIZE_BIG);
+
+	Lcd_Bar(114, 2, 124, 17, (uint8_t)percent);
 
 	//Кнопка энкодера.
 //	IncrementOnEachPass(&ButtonPressCount, Encoder.BUTTON_STATE);
@@ -295,13 +346,14 @@ void Task_Motor(void){
 //*******************************************************************************************
 //*******************************************************************************************
 //*******************************************************************************************
-void Task_LcdUpdate(void){
+void Task_DisplayPageSelect(void){
 
+	static uint32_t pageIndex = 0;
+	//-----------------------------
 	TIME_Calculation(&Time, PROTOCOL_MASTER_I2C_GetDataMCU()->msCount);//RTOS_GetTickCount());
-	//Выбор сраницы отображения Енкодером.
-	static uint32_t encoder = 0;
-	Encoder_IncDecParam(&Encoder, &encoder, 1, 0, 2);
-	switch(encoder){
+	//Если на какой-то странице производится редактирование то выбор страницы запрешен
+	if(!redaction) ENCODER_IncDecParam(&Encoder, &pageIndex, 1, 0, 2);//Выбор сраницы
+	switch(pageIndex){
 		//--------------------
 		case 0:
 			RTOS_SetTask(PROTOCOL_MASTER_I2C_RequestToMCU, 1, 0);
@@ -309,8 +361,8 @@ void Task_LcdUpdate(void){
 		break;
 		//--------------------
 		case 1:
-			//RTOS_SetTask(Task_DS2782,	  	  1,  0);
-			RTOS_SetTask(Task_DS2782_Display, 3, 0);
+			RTOS_SetTask(Task_DS2782,	  	  1, 0);
+			RTOS_SetTask(Task_DS2782_Display, 2, 0);
 		break;
 		//--------------------
 		default:
@@ -323,10 +375,14 @@ void Task_LcdUpdate(void){
 	//Проверка состяния системного регистра SystemCtrlReg
 	if(PROTOCOL_MASTER_I2C_GetDataMCU()->SystemCtrlReg.f_PwrOff) BigBoardPwr_Off();
 	else 														 BigBoardPwr_On();
-	//Обновление изображения на экране.
-	//Очистка видеобуфера производится на каждой странице.
-	Lcd_Update(); //вывод сделан для LM6063D
 }
+//************************************************************
+//void Task_LcdUpdate(void){
+//
+//	//Обновление изображения на экране.
+//	//Очистка видеобуфера производится на каждой странице.
+//	Lcd_Update(); //вывод сделан для LM6063D
+//}
 //*******************************************************************************************
 //*******************************************************************************************
 //*******************************************************************************************
@@ -346,17 +402,17 @@ int main(void){
 	//Ини-я DS2782.
 //	DS2782_Init(DS2782_I2C, I2C_GPIO_NOREMAP);
 	//***********************************************
-	//Инициализация графического дисплея.
+	//Инициализация графического дисплея LM6063D.
 	Lcd_Init();
 	//***********************************************
 	//Инициализация Энкодера.
-	Encoder.GPIO_PORT_A 	 = GPIOC;
-	Encoder.GPIO_PIN_A   	 = 11;
-	Encoder.GPIO_PORT_B 	 = GPIOC;
-	Encoder.GPIO_PIN_B  	 = 12;
-	Encoder.GPIO_PORT_BUTTON = GPIOC;
-	Encoder.GPIO_PIN_BUTTON  = 10;
-	Encoder_Init(&Encoder);
+	Encoder.GpioPort_A 	 	= GPIOC;
+	Encoder.GpioPin_A   	= 11;
+	Encoder.GpioPort_B 	 	= GPIOC;
+	Encoder.GpioPin_B  	 	= 12;
+	Encoder.GpioPort_BUTTON = GPIOC;
+	Encoder.GpioPin_BUTTON  = 10;
+	ENCODER_Init(&Encoder);
 	//***********************************************
 	//Инициализация датчиков температуры
 	Sensor_1.SENSOR_NUMBER = 1;
@@ -365,7 +421,6 @@ int main(void){
 	//Инициализация I2C для работы протокола.
 	PROTOCOL_MASTER_I2C_Init();
 
-	//***********************************************
 	//Настройки вращения для MCUv7
 	MCU_Request_t cmd;
 
@@ -380,29 +435,12 @@ int main(void){
 	cmd.Count   = 5;				   	 //Размер блока данных команды в байтах
 	*(uint32_t*)&cmd.Payload = 100;      //время разгона в мс.
 	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
-
-//	//Скорость вращения
-//	cmd.CmdCode = cmdSetMaxVelocity;//команда
-//	cmd.Count   = 5;				//Размер блока данных команды в байтах
-//	*(uint32_t*)&cmd.Payload = 60;  //скрость в RPM
-//	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
-
-//	//Включить момент
-//	cmd.CmdCode = cmdMotorTorqueCtrl;//команда
-//	cmd.Count   = 2;				 //Размер блока данных команды в байтах
-//	*(uint8_t*)&cmd.Payload = 1;	 //вкл. момент
-//	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
-//
-//	//На какой угол повернуться.
-//	cmd.CmdCode = cmdSetTargetPosition;//команда
-//	cmd.Count   = 5;				   //Размер блока данных команды в байтах
-//	*(int32_t*)&cmd.Payload = -360;    //угол поворота, в градусах.
-//	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
 	//***********************************************
 	//Инициализация диспетчера.
 	RTOS_Init();
-	RTOS_SetTask(Task_LcdUpdate, 0, 5);
-	RTOS_SetTask(Task_Motor,     0, 2000);
+	RTOS_SetTask(Lcd_Update, 		     0,   10);//Обновление дисплея каждые 10мс
+	RTOS_SetTask(Task_DisplayPageSelect, 0,    5);
+	RTOS_SetTask(Task_Motor,     	   500, 2000);
 
 	SysTick_Init();
 	__enable_irq();
@@ -424,7 +462,7 @@ void SysTick_IT_Handler(void){
 
 	msDelay_Loop();
 	Blink_Loop();
-	Encoder_ScanLoop(&Encoder);
+	ENCODER_ScanLoop(&Encoder);
 }
 //*******************************************************************************************
 //*******************************************************************************************

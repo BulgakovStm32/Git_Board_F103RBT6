@@ -177,22 +177,40 @@ void Lcd_Circle(uint8_t center_x, uint8_t center_y, uint8_t radius, uint8_t mode
 //рисуем батарейку с заполнением в %
 void Lcd_Bar(int x1, int y1, int x2, int y2, uint8_t persent){
   
-  unsigned char horizon_line,horizon_line2,i;
-  //--------------------
-  if(persent>100)return;
-  
-  Lcd_Line(x1,y2,x2,y2,1);  //down
-  Lcd_Line(x2,y1,x2,y2,1);  //right
-  Lcd_Line(x1,y1,x1,y2,1);  //left
-  Lcd_Line(x1,y1,x2,y1,1);  //up
-  Lcd_Line(x1+7,y1-1,x2-7,y1-1,1);
-  Lcd_Line(x1+7,y1-2,x2-7,y1-2,1);
+	uint8_t horizon_line,
+			horizon_line2,
+			i = 0;
+	//--------------------
+	if(persent > 100) persent = 100;
+	if(persent == 0 ) persent = 1;
 
-  horizon_line = persent*(y2-y1-3)/100;
-  for(i=0;i<horizon_line;i++) Lcd_Line(x1+2,y2-2-i,x2-2,y2-2-i,1);
+//	Lcd_Line(x1, y2, x2, y2, 1);  //down
+//	Lcd_Line(x2, y1, x2, y2, 1);  //right
+//	Lcd_Line(x1, y1, x1, y2, 1);  //left
+//	Lcd_Line(x1, y1, x2, y1, 1);  //up
+//	Lcd_Line(x1+7, y1-1, x2-7, y1-1, 1);
+//	Lcd_Line(x1+7, y1-2, x2-7, y1-2, 1);
 
-  horizon_line2 = (y2-y1-3);
-  for(i=horizon_line2;i>horizon_line;i--) Lcd_Line(x1+2,y2-2-i,x2-2,y2-2-i,0);
+//	horizon_line = persent * (y2-y1-3) / 100;
+//	for(i = 0; i < horizon_line; i++) Lcd_Line(x1+2, y2-2-i, x2-2, y2-2-i, 1);
+//
+//	horizon_line2 = (y2-y1-3);
+//	for(i = horizon_line2; i > horizon_line; i--) Lcd_Line(x1+2, y2-2-i, x2-2, y2-2-i, 0);
+
+	//Контур
+	Lcd_Line(x1, y1, x2, y1, 1);  //down
+	Lcd_Line(x2, y1, x2, y2, 1);  //right
+	Lcd_Line(x1, y1, x1, y2, 1);  //left
+	Lcd_Line(x1, y2, x2, y2, 1);  //up
+	//Пипка
+	Lcd_Line(x1+7, y2+1, x2-7, y2+1, 1);
+	Lcd_Line(x1+7, y2+2, x2-7, y2+2, 1);
+	//Заполнение
+	horizon_line = persent * (y2-y1-3) / 100;
+	for(i = 0; i < horizon_line; i++) Lcd_Line(x1+2, y2-13+i, x2-2, y2-13+i, 1);
+
+//	horizon_line2 = (y2-y1-3);
+//	for(i = horizon_line2; i > horizon_line; i--) Lcd_Line(x1+2, y2-2-i, x2-2, y2-2-i, 0);
 }
 //*****************************************************************************
 //Установка курсора в положение Х,У. Диапазон значений Х,У: 1,1 .. 14,8.
@@ -437,6 +455,13 @@ void Lcd_u32ToHex(uint32_t var){
 	Lcd_u8ToHex((uint8_t)((var & 0x00FF0000) >> 16));
 	Lcd_u8ToHex((uint8_t)((var & 0x0000FF00) >> 8));
 	Lcd_u8ToHex((uint8_t)( var & 0x000000FF));
+}
+//*****************************************************************************
+void Lcd_PrintStringAndNumber(uint8_t cursor_x, uint8_t cursor_y, char *str, uint32_t number, uint32_t numDigit){
+
+	Lcd_SetCursor(cursor_x, cursor_y);
+	if(*str != '\0')  Lcd_Print(str);
+	if(numDigit != 0) Lcd_BinToDec(number, numDigit, LCD_CHAR_SIZE_NORM);
 }
 //*********************************************************************************************
 //*********************************************************************************************
