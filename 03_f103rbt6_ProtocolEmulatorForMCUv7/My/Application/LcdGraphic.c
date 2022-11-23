@@ -178,7 +178,7 @@ void Lcd_Circle(uint8_t center_x, uint8_t center_y, uint8_t radius, uint8_t mode
 void Lcd_Bar(int x1, int y1, int x2, int y2, uint8_t persent){
   
 	uint8_t horizon_line,
-			horizon_line2,
+			//horizon_line2,
 			i = 0;
 	//--------------------
 	if(persent > 100) persent = 100;

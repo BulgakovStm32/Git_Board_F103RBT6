@@ -62,7 +62,7 @@ static void I2cRxParsing(void){
 		break;
 		//------------------
 		case(cmdGetSystemCtrlReg):
-			*(uint32_t*)&MCUc7Data.SystemCtrlReg = *(uint32_t *)&response->Payload[0];
+			*(uint32_t*)&MCUc7Data.SysCtrlReg = *(uint32_t *)&response->Payload[0];
 		break;
 		//------------------
 		case(cmdGetSupplyVoltage):
@@ -215,8 +215,8 @@ void PROTOCOL_MASTER_I2C_SendCmdToMCU(MCU_Request_t *cmd){
 	//-----------------------------
 	//Расчет CRC
 	cmd->Payload[cmd->Count-1] = CRC_Calculate((uint8_t*)cmd, cmd->Count+1);
-	//Перадача команды в MCUv7. Пытаемся передать адрес три раза.
-	while(I2C_StartAndSendDeviceAddr(I2cProtocol.i2c, I2cProtocol.slaveAddr|I2C_MODE_WRITE) != I2C_OK)
+	//Перадача команды в MCUv7. Пытаемся передать адрес 3 раза.
+	while(I2C_StartAndSendDeviceAddr(I2cProtocol.i2c, (uint8_t)(I2cProtocol.slaveAddr|I2C_MODE_WRITE)) != I2C_OK)
 	{
 		if(++errCount >= 3)
 		{
@@ -230,6 +230,61 @@ void PROTOCOL_MASTER_I2C_SendCmdToMCU(MCU_Request_t *cmd){
 	//Блокирующее чтение ответа на команду от MCUv7.
 //	I2C_StartAndSendDeviceAddr(MCUv7_I2C, MCUv7_I2C_ADDR|I2C_MODE_READ);
 //	I2C_ReadData(I2cProtocol.i2c, I2cProtocol.pTxBuf, sizeResp);
+}
+//****************************************************
+//команда установки передаточного числа редуктора
+void PROTOCOL_MASTER_I2C_SetReducerRate(uint8_t rate){
+
+	MCU_Request_t cmd;
+	//-----------------------------
+	cmd.CmdCode = cmdSetReducerRate;//команда
+	cmd.Count   = 2;				//Размер блока данных команды в байтах
+	*(uint8_t*)&cmd.Payload = rate;	//передаточное число редуктора
+	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
+}
+//****************************************************
+//команда установки Времени ускорения
+void PROTOCOL_MASTER_I2C_SetAccelerationTime(uint32_t accelTime){
+
+	MCU_Request_t cmd;
+	//-----------------------------
+	cmd.CmdCode = cmdSetAccelerationTime;//команда
+	cmd.Count   = 5;				   	 //Размер блока данных команды в байтах
+	*(uint32_t*)&cmd.Payload = accelTime;//время разгона в мс.
+	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
+}
+//****************************************************
+//команда установки Скорости вращения.
+void PROTOCOL_MASTER_I2C_SetMaxVelocity(uint32_t maxVel){
+
+	MCU_Request_t cmd;
+	//-----------------------------
+	cmd.CmdCode = cmdSetMaxVelocity;   //команда
+	cmd.Count   = 5;				   //Размер блока данных команды в байтах
+	*(uint32_t*)&cmd.Payload = maxVel; //скрость в RPM
+	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
+}
+//****************************************************
+//команда вкл./откл. моментом на валу ШД
+void PROTOCOL_MASTER_I2C_MotorTorqueCtrl(uint8_t control){
+
+	MCU_Request_t cmd;
+	//-----------------------------
+	cmd.CmdCode = cmdMotorTorqueCtrl; //команда
+	cmd.Count   = 2;				  //Размер блока данных команды в байтах
+	*(uint8_t*)&cmd.Payload = control;//вкл. момент
+	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
+}
+//****************************************************
+//команда установки На какой угол повернуться.
+void PROTOCOL_MASTER_I2C_SetTargetPosition(int32_t angle){
+
+	MCU_Request_t cmd;
+	//-----------------------------
+	cmd.CmdCode = cmdSetTargetPosition; //команда
+	cmd.Count   = 5;				    //Размер блока данных команды в байтах
+	*(int32_t*)&cmd.Payload = angle;
+	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
 }
 //****************************************************
 uint32_t PROTOCOL_MASTER_I2C_GetI2cNacCount(void){

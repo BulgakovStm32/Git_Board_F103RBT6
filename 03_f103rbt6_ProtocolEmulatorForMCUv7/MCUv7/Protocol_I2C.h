@@ -47,7 +47,7 @@ typedef struct{
 						   		//0 - остальные режимы работы
 						   		//1 - пришла команда cmdTurnOffPower,
 	uint32_t dummy		:28;
-}MCU_SystemCtrlReg_t;
+}MCU_SysCtrlReg_t;
 //****************************************************
 //Структура данных от MCUv7
 typedef struct{
@@ -59,13 +59,20 @@ typedef struct{
 	uint32_t 			I2cResetCount;
 	uint32_t 			TemperatureSense1;
 	uint32_t 			TemperatureSense2;
-	MCU_SystemCtrlReg_t SystemCtrlReg;
+	MCU_SysCtrlReg_t 	SysCtrlReg;
 }MCUv7_Data_t;
 //*******************************************************************************************
 //*******************************************************************************************
 void 	 PROTOCOL_MASTER_I2C_Init(void);
 void 	 PROTOCOL_MASTER_I2C_RequestToMCU(void);
 void 	 PROTOCOL_MASTER_I2C_SendCmdToMCU(MCU_Request_t *cmd);
+
+void 	 PROTOCOL_MASTER_I2C_SetReducerRate(uint8_t reducerRate);
+void 	 PROTOCOL_MASTER_I2C_SetAccelerationTime(uint32_t accelTime);
+void 	 PROTOCOL_MASTER_I2C_SetMaxVelocity(uint32_t maxVel);
+void 	 PROTOCOL_MASTER_I2C_MotorTorqueCtrl(uint8_t control);
+void 	 PROTOCOL_MASTER_I2C_SetTargetPosition(int32_t angle);
+
 uint32_t PROTOCOL_MASTER_I2C_GetI2cNacCount(void);
 MCUv7_Data_t* PROTOCOL_MASTER_I2C_GetDataMCU(void);
 uint32_t PROTOCOL_MASTER_I2C_DMAState(void);

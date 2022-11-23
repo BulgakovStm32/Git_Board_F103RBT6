@@ -250,7 +250,7 @@ void Task_MCUv7DataDisplay(void){
 
 	//Значение энкодера MCUv7.
 	temp = PROTOCOL_MASTER_I2C_GetDataMCU()->EncoderAngle;
-	Lcd_PrintStringAndNumber(1, 4, "EncAngle = ", temp, 6);
+	Lcd_PrintStringAndNumber(1, 4, "EncAngle: ", temp, 6);
 
 	//Значение оптических датчиков
 	temp = PROTOCOL_MASTER_I2C_GetDataMCU()->Sense;
@@ -301,46 +301,23 @@ void Task_MCUv7DataDisplay(void){
 //*******************************************************************************************
 void Task_Motor(void){
 
-	MCU_Request_t cmd;
 	static uint32_t flag = 0;
 	int32_t temp;
 	//-----------------------------
+
 	if(PROTOCOL_MASTER_I2C_DMAState() != I2C_DMA_READY) return;
 
-	//передаточное число редуктора
-	cmd.CmdCode = cmdSetReducerRate;//команда
-	cmd.Count   = 2;				//Размер блока данных команды в байтах
-	*(uint8_t*)&cmd.Payload = 6;	//передаточное число редуктора
-	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
-
-	//Время ускорения
-	cmd.CmdCode = cmdSetAccelerationTime;//команда
-	cmd.Count   = 5;				   	 //Размер блока данных команды в байтах
-	*(uint32_t*)&cmd.Payload = 500;      //время разгона в мс.
-	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
-
-	//Скорость вращения
-	cmd.CmdCode = cmdSetMaxVelocity;//команда
-	cmd.Count   = 5;				//Размер блока данных команды в байтах
-	*(uint32_t*)&cmd.Payload = 10;  //скрость в RPM
-	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
-
-	//Включить момент
-	cmd.CmdCode = cmdMotorTorqueCtrl;//команда
-	cmd.Count   = 2;				 //Размер блока данных команды в байтах
-	*(uint8_t*)&cmd.Payload = 1;	 //вкл. момент
-	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
+	//Настройки режимов вращения для MCUv7
+	PROTOCOL_MASTER_I2C_SetReducerRate(6);		 //передаточное число редуктора
+	PROTOCOL_MASTER_I2C_SetAccelerationTime(500);//Время ускорения
+	PROTOCOL_MASTER_I2C_SetMaxVelocity(10);		 //Скорость вращения
+	PROTOCOL_MASTER_I2C_MotorTorqueCtrl(1);	     //Включить момент
 
 	//На какой угол повернуться.
-	cmd.CmdCode = cmdSetTargetPosition; //команда
-	cmd.Count   = 5;				    //Размер блока данных команды в байтах
-
 	if(flag) temp = -60; //угол поворота, в градусах.
 	else     temp =  60;
 	flag ^= 1;
-	*(int32_t*)&cmd.Payload = temp;
-
-	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
+	PROTOCOL_MASTER_I2C_SetTargetPosition(temp);
 }
 //*******************************************************************************************
 //*******************************************************************************************
@@ -351,6 +328,7 @@ void Task_DisplayPageSelect(void){
 	static uint32_t pageIndex = 0;
 	//-----------------------------
 	TIME_Calculation(&Time, PROTOCOL_MASTER_I2C_GetDataMCU()->msCount);//RTOS_GetTickCount());
+
 	//Если на какой-то странице производится редактирование то выбор страницы запрешен
 	if(!redaction) ENCODER_IncDecParam(&Encoder, &pageIndex, 1, 0, 2);//Выбор сраницы
 	switch(pageIndex){
@@ -373,8 +351,8 @@ void Task_DisplayPageSelect(void){
 		//--------------------
 	}
 	//Проверка состяния системного регистра SystemCtrlReg
-	if(PROTOCOL_MASTER_I2C_GetDataMCU()->SystemCtrlReg.f_PwrOff) BigBoardPwr_Off();
-	else 														 BigBoardPwr_On();
+	if(PROTOCOL_MASTER_I2C_GetDataMCU()->SysCtrlReg.f_PwrOff) BigBoardPwr_Off();
+	else 									  				  BigBoardPwr_On();
 }
 //************************************************************
 //void Task_LcdUpdate(void){
@@ -396,11 +374,11 @@ int main(void){
 	MICRO_DELAY_Init();
 	USART_Init(USART1, USART1_BRR);
 
-	MICRO_DELAY(1000000);//Эта задержка нужна для стабилизации напряжения патания.
-					     //Без задержки LCD-дисплей не работает.
+	MICRO_DELAY(250000);//Эта задержка нужна для стабилизации напряжения патания.
+					    //Без задержки LCD-дисплей не работает.
 	//***********************************************
 	//Ини-я DS2782.
-//	DS2782_Init(DS2782_I2C, I2C_GPIO_NOREMAP);
+	//DS2782_Init(DS2782_I2C, I2C_GPIO_NOREMAP);
 	//***********************************************
 	//Инициализация графического дисплея LM6063D.
 	Lcd_Init();
@@ -420,21 +398,6 @@ int main(void){
 	//***********************************************
 	//Инициализация I2C для работы протокола.
 	PROTOCOL_MASTER_I2C_Init();
-
-	//Настройки вращения для MCUv7
-	MCU_Request_t cmd;
-
-	//передаточное число редуктора
-	cmd.CmdCode = cmdSetReducerRate;//команда
-	cmd.Count   = 2;				//Размер блока данных команды в байтах
-	*(uint8_t*)&cmd.Payload = 6;	//передаточное число редуктора
-	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
-
-	//Время ускорения
-	cmd.CmdCode = cmdSetAccelerationTime;//команда
-	cmd.Count   = 5;				   	 //Размер блока данных команды в байтах
-	*(uint32_t*)&cmd.Payload = 100;      //время разгона в мс.
-	PROTOCOL_MASTER_I2C_SendCmdToMCU(&cmd);
 	//***********************************************
 	//Инициализация диспетчера.
 	RTOS_Init();
