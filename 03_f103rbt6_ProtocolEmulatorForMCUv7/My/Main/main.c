@@ -251,27 +251,27 @@ void Task_MCUv7DataDisplay(void){
 	//Значение энкодера MCUv7.
 	temp = PROTOCOL_MASTER_I2C_GetDataMCU()->EncoderAngle;
 	Lcd_PrintStringAndNumber(1, 4, "EncAngle: ", temp, 6);
-
-	//Значение оптических датчиков
-	temp = PROTOCOL_MASTER_I2C_GetDataMCU()->Sense;
-	Lcd_SetCursor(1, 5);
-	Lcd_Print("Sense:");
-	Lcd_u32ToHex(temp);
-
-	//Напряжения питания MCU
-	temp = PROTOCOL_MASTER_I2C_GetDataMCU()->SupplyVoltageVal;
-	Lcd_PrintStringAndNumber(1, 6, "Vin  : ", temp, 5);
-	Lcd_Print(" mV");
-
-	//Вывод темперетуры DS18B20.
-	Sensor_1.TEMPERATURE_SIGN = PROTOCOL_MASTER_I2C_GetDataMCU()->TemperatureSense1 >> 24;
-	Sensor_1.TEMPERATURE      = PROTOCOL_MASTER_I2C_GetDataMCU()->TemperatureSense1 & 0x0000FFFF;
-
-	Sensor_2.TEMPERATURE_SIGN = PROTOCOL_MASTER_I2C_GetDataMCU()->TemperatureSense2 >> 24;
-	Sensor_2.TEMPERATURE      = PROTOCOL_MASTER_I2C_GetDataMCU()->TemperatureSense2 & 0x0000FFFF;
-
-	Temperature_Display(1, 7, &Sensor_1);
-	Temperature_Display(1, 8, &Sensor_2);
+//
+//	//Значение оптических датчиков
+////	temp = PROTOCOL_MASTER_I2C_GetDataMCU()->Sense;
+////	Lcd_SetCursor(1, 5);
+////	Lcd_Print("Sense:");
+////	Lcd_u32ToHex(temp);
+//
+//	//Напряжения питания MCU
+//	temp = PROTOCOL_MASTER_I2C_GetDataMCU()->SupplyVoltageVal;
+//	Lcd_PrintStringAndNumber(1, 6, "Vin  : ", temp, 5);
+//	Lcd_Print(" mV");
+//
+//	//Вывод темперетуры DS18B20.
+//	Sensor_1.TEMPERATURE_SIGN = PROTOCOL_MASTER_I2C_GetDataMCU()->TemperatureSense1 >> 24;
+//	Sensor_1.TEMPERATURE      = PROTOCOL_MASTER_I2C_GetDataMCU()->TemperatureSense1 & 0x0000FFFF;
+//
+//	Sensor_2.TEMPERATURE_SIGN = PROTOCOL_MASTER_I2C_GetDataMCU()->TemperatureSense2 >> 24;
+//	Sensor_2.TEMPERATURE      = PROTOCOL_MASTER_I2C_GetDataMCU()->TemperatureSense2 & 0x0000FFFF;
+//
+//	Temperature_Display(1, 7, &Sensor_1);
+//	Temperature_Display(1, 8, &Sensor_2);
 	//----------------------------------------------
 	//Расчет процентов заряда АКБ и отображение уровня заряда.
 	#define	V_BAT_MIN_mV	10800U	//
@@ -283,11 +283,42 @@ void Task_MCUv7DataDisplay(void){
 	uint32_t percent = ((100000 * (temp - V_BAT_MIN_mV)) / DEVIDER) / 1000;
 
 	if(percent > 100) percent = 100;
-	Lcd_SetCursor(16, 7);
-	Lcd_PrintBig("%");
-	Lcd_BinToDec(percent, 3, LCD_CHAR_SIZE_BIG);
 
-	Lcd_Bar(114, 2, 124, 17, (uint8_t)percent);
+//	Lcd_SetCursor(16, 7);
+//	Lcd_PrintBig("%");
+//	Lcd_BinToDec(percent, 3, LCD_CHAR_SIZE_BIG);
+//
+//	Lcd_Bar(114, 2, 124, 17, (uint8_t)percent);
+	//----------------------------------------------
+	//Горизонтальная шкала
+
+	//num подряд идущих двойных вертикальных высоких палочек с шагом step
+	uint8_t	num    = 5;
+	uint8_t step_x = 100 / (num - 1);
+	uint8_t n_x    = 2;
+
+	for(uint8_t i = 0; i < num; i++)
+	{
+		Lcd_Line(n_x, 1, n_x, 5, PIXEL_ON); //Вертикальная палочка высотой 5 пикселей.
+		//Lcd_Line(1*n_x+1, 1, 1*n_x+1, 5, PIXEL_ON);
+		n_x += step_x;
+	}
+
+	//Циферки над высокими черточками
+	Lcd_SetCursor(1, 7);
+	Lcd_Print("0   25  50  75  100");
+
+	//lowNum подряд идущих двойных вертикальных низких палочек
+	uint8_t lowNum    = (uint8_t)percent; //макс 127
+	uint8_t lowStep_x = 1;
+	uint8_t lowN_x    = 2;
+
+	for(uint8_t i = 0; i < lowNum; i++)
+	{
+		Lcd_Line(lowN_x ,1 ,lowN_x ,3 ,PIXEL_ON);//Вертикальная палочка высотой 3 пикселя.
+		lowN_x += lowStep_x;
+	}
+
 
 	//Кнопка энкодера.
 //	IncrementOnEachPass(&ButtonPressCount, Encoder.BUTTON_STATE);
@@ -371,11 +402,14 @@ int main(void){
 	//Drivers.
 	Sys_Init();
 	Gpio_Init();
-	MICRO_DELAY_Init();
+	DELAY_Init();
 	USART_Init(USART1, USART1_BRR);
 
-	MICRO_DELAY(250000);//Эта задержка нужна для стабилизации напряжения патания.
-					    //Без задержки LCD-дисплей не работает.
+	DELAY_milliS(250);//Эта задержка нужна для стабилизации напряжения патания.
+					  //Без задержки LCD-дисплей не работает.
+	//***********************************************
+	//Чтение конфигурации. Если первое включение, то запись заводских установок.
+	Config_Init();
 	//***********************************************
 	//Ини-я DS2782.
 	//DS2782_Init(DS2782_I2C, I2C_GPIO_NOREMAP);
@@ -401,7 +435,9 @@ int main(void){
 	//***********************************************
 	//Инициализация диспетчера.
 	RTOS_Init();
-	RTOS_SetTask(Lcd_Update, 		     0,   10);//Обновление дисплея каждые 10мс
+	RTOS_SetTask(Lcd_Update,      0,    5);//Обновление дисплея каждые 5мс
+	RTOS_SetTask(Config_SaveLoop, 0, 1000);//Проверка и сохранение конфигурации каждую 1 сек.
+
 	RTOS_SetTask(Task_DisplayPageSelect, 0,    5);
 	RTOS_SetTask(Task_Motor,     	   500, 2000);
 

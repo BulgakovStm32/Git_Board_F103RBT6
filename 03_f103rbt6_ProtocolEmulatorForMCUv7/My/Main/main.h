@@ -23,6 +23,7 @@
 #include "dma_ST.h"
 #include "adc_ST.h"
 #include "uart_ST.h"
+#include "flash_ST.h"
 //-------------------------
 //Планировщик
 //#include "Scheduler.h"
@@ -44,6 +45,7 @@
 #include "PID.h"
 #include "Time.h"
 #include "Crc.h"
+#include "Config.h"
 //-------------------------
 //Для работы с MCUv7
 #include "cmd.h"
