@@ -293,9 +293,9 @@ void Task_MCUv7DataDisplay(void){
 	//Горизонтальная шкала
 
 	//num подряд идущих двойных вертикальных высоких палочек с шагом step
-	uint8_t	num    = 5;
-	uint8_t step_x = 100 / (num - 1);
-	uint8_t n_x    = 2;
+	uint8_t	num    = 5;				  //Необходимое кол-во вертикальных высоких палочек на шкале.
+	uint8_t step_x = 100 / (num - 1); //Шаг между палочками
+	uint8_t n_x    = 2;				  //Начальная координата по Х первой палочки.
 
 	for(uint8_t i = 0; i < num; i++)
 	{
@@ -309,9 +309,11 @@ void Task_MCUv7DataDisplay(void){
 	Lcd_Print("0   25  50  75  100");
 
 	//lowNum подряд идущих двойных вертикальных низких палочек
-	uint8_t lowNum    = (uint8_t)percent; //макс 127
-	uint8_t lowStep_x = 1;
-	uint8_t lowN_x    = 2;
+	uint8_t lowNum    = (uint8_t)percent;//Кол-во палочек, макс 127
+	uint8_t lowStep_x = 1;				 //Шаг между палочками
+	uint8_t lowN_x    = 2;				 //Начальная координата по Х первой палочки.
+
+	lowNum /= lowStep_x;//равномерное распределение шагов на всю шкалу.
 
 	for(uint8_t i = 0; i < lowNum; i++)
 	{
