@@ -27,6 +27,131 @@ static uint32_t redaction = 0;
 //*******************************************************************************************
 //*******************************************************************************************
 //*******************************************************************************************
+/*
+ * Функция пропорционально переносит значение (value) из текущего диапазона значений (fromLow .. fromHigh)
+ * в новый диапазон (toLow .. toHigh), заданный параметрами.
+ * Функция map() не ограничивает значение рамками диапазона, как это делает функция constrain().
+ *
+ * Contrain() может быть использован до или после вызова map(), если необходимо ограничить допустимые значения заданным диапазоном.
+ * Обратите внимание, что "нижняя граница" может быть как меньше, так и больше "верхней границы".
+ *  Это может быть использовано для того чтобы "перевернуть" диапазон:
+ *  y = map(x, 1, 50, 50, 1);
+ *
+ * Возможно использование отрицательных значений:
+ * y = map(x, 1, 50, 50, -100);
+ *
+ * Функция map() оперирует целыми числами.
+ * При пропорциональном переносе дробная часть не округляется по правилами, а просто отбрасывается.
+ *
+ * Параметры
+ * value	  : значение для переноса
+ * in_min  : нижняя граница текущего диапазона
+ * in_max  : верхняя граница текущего диапазона
+ * out_min : нижняя граница нового диапазона, в который переноситься значение
+ * out_max : верхняя граница нового диапазона
+ * Возвращаемое значение:
+ * Значение в новом диапазоне */
+
+long map(long value, long in_min, long in_max, long out_min, long out_max){
+
+  return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+//************************************************************
+
+int32_t map_I32(int32_t value, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max){
+
+  return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+//*******************************************************************************************
+//*******************************************************************************************
+//*******************************************************************************************
+//*******************************************************************************************
+//стрелочный индикатор
+#define ANALOG_SCALE_ANGLE_MIN	50
+#define ANALOG_SCALE_ANGLE_MAX	132
+
+/*
+ * Параметры:
+ * angle :угол на который нужно повернуть стрелку (слева направо)
+ *		  мин. уол  - 50  градусов.
+ *		  макс.угол - 132 градуса.
+ */
+void Lcd_AnalogScale(uint8_t angle){
+
+//	uint8_t angle = encod;  //угол на который нужно повернуть стрелку (слева направо)
+							//мин. уол  - 50 градусов.
+							//макс.угол - 132 градуса.
+	uint8_t markRadius = 95;// Радиус шкалы.
+	int8_t  x0 =  64;		// Х-координата центра шкалы
+	int8_t  y0 = -60; 		// У-координата центра шкалы.
+	//-------------------
+	//Рисуем риски-метки шкалы
+	for(float i = 0; i < M_PI; i += M_PI / 14)
+	{
+		Lcd_Line(x0 +  markRadius    * cosf(i),	//x1
+				 y0 +  markRadius    * sinf(i),	//y1
+				 x0 + (markRadius-6) * cosf(i), //x2
+				 y0 + (markRadius-6) * sinf(i), //y2
+				 PIXEL_ON);
+	}
+	//Стрелка.
+	angle = (180 - angle); 	     	   //Это нужно чтобы стрелка двигалась слева направо.
+	float rad = angle * (M_PI / 180.0);//перевод углов в радианы
+	float cos = cosf(rad);
+	float sin = sinf(rad);
+	x0 += 1; //небольшое смещение по Х что бы стрелка точно поподала в среднюю риску.
+	y0 += 5; //небольшое смещение по Y что бы стрелка поподала в риски.
+	Lcd_Line(x0 + (markRadius) * cos,
+			 y0 + (markRadius) * sin,
+			 x0 + 1 * cos,
+			 y0 + 1 * sin,
+			 PIXEL_ON);
+}
+//************************************************************
+//Горизонтальная шкала с рисками.
+
+/*
+ * Параметры:
+ * x0	   : начальная координата шкалы по Х (мин. 0, макс. 127).
+ * y0	   : начальная координата шкалы по Y (мин. 0, макс. 63).
+ * sigLevel: отображаемое значение (мин. 0, макс. 127)
+ *
+ */
+void Lcd_HorizontalProgressBar(uint8_t x0, uint8_t y0, uint8_t level){
+
+//	uint8_t x0	      = 3;		//Начальная координата шкалы по Х.
+//	uint8_t y0	      = 2;		//Начальная координата шкалы по Y.
+//	uint8_t sigLevel  = (uint8_t)map(percent, 0, 100, 0, maxVal);//Отображаемый сигнал . Мин. 0, макс. 127.
+
+	const uint8_t numMarks  = 5;   //Необходимое кол-во вертикальных рисок на шкале.
+	const uint8_t scaleStep = 1;   //Шаг приращения шкалы в пикселях
+	const uint8_t maxVal    = 100; //Максимальное отображаемое значение, макс. 127 (на дисплее макс 128 пикселей).
+	uint8_t marksStep = maxVal / (numMarks-1);//Шаг между рисками.
+	uint8_t stepCount = x0;
+	//-------------------
+	//Рисуем риски.
+	for(uint8_t i = 0; i < numMarks; i++)
+	{
+		Lcd_Line(stepCount, y0, stepCount, y0+4, PIXEL_ON);//Первая Вертикальная палочка высотой 5 пикселей.
+		//Lcd_Line(stepCount+1, 1, stepCount+1, 5, PIXEL_ON);//Вторая Вертикальная палочка высотой 5 пикселей.
+		stepCount += marksStep;
+	}
+	//Рисуем шкалу.
+	stepCount = x0;
+	level /= scaleStep;//равномерное распределение шагов на всю шкалу.
+	for(uint8_t i = 0; i < level; i++)
+	{
+		Lcd_Line(stepCount, y0, stepCount, y0+2, PIXEL_ON);//Вертикальная палочка высотой 3 пикселя.
+		stepCount += scaleStep;
+	}
+	//Циферки над рисками шкалы
+	Lcd_SetCursor(1, 7);
+	Lcd_Print("0   25  50  75  100");
+}
+//*******************************************************************************************
+//*******************************************************************************************
+//*******************************************************************************************
+//*******************************************************************************************
 void IncrementOnEachPass(uint32_t *var, uint32_t event, uint32_t step, uint32_t max){
 
 		   uint32_t riseReg  = 0;
@@ -100,6 +225,23 @@ void Time_Display(uint8_t cursor_x, uint8_t cursor_y){
 	if(Time.sec & 1) Lcd_Chr(':');//Мигание разделительным знаком
 	else			 Lcd_Chr(' ');
 	Lcd_BinToDec(Time.sec,  2, LCD_CHAR_SIZE_NORM);//секунды
+}
+//************************************************************
+//Расчет процентов заряда АКБ.
+#define	V_BAT_MIN_mV	10800U	//
+#define	V_BAT_MAX_mV	16800U	//
+//#define	DEVIDER			(V_BAT_MAX_mV - V_BAT_MIN_mV)
+
+//Расчет процентов заряда АКБ.
+uint8_t Battery_GetPercentCharge(void){
+
+	uint32_t temp;
+	//-------------------
+	temp = PROTOCOL_MASTER_I2C_GetDataMCU()->SupplyVoltageVal;
+	if(temp < V_BAT_MIN_mV) temp = V_BAT_MIN_mV;
+	temp = map_I32(temp, V_BAT_MIN_mV, V_BAT_MAX_mV, 1, 100);
+	if(temp > 100) temp = 100;
+	return (uint8_t)temp;
 }
 //*******************************************************************************************
 //*******************************************************************************************
@@ -238,95 +380,112 @@ void Task_MCUv7DataDisplay(void){
 		strIndex = 0;
 	}
 	//----------------------------------------------
-	Lcd_PrintStringAndNumber(18, 2, '\0', strIndex, 2);
+	Lcd_PrintStringAndNumber(18, 3, '\0', strIndex, 2);
 
 	//Вывод ошибок обvена по I2C.
 	temp = PROTOCOL_MASTER_I2C_GetI2cNacCount();
-	Lcd_PrintStringAndNumber(1, 2, "I2cNac  : ", temp, 4);
+	Lcd_PrintStringAndNumber(1, 2, "I2cNac:", temp, 3);
 
 	//Количество переинициализаций I2C.
 	temp = PROTOCOL_MASTER_I2C_GetDataMCU()->I2cResetCount;
-	Lcd_PrintStringAndNumber(1, 3, "I2cReset: ", temp, 4);
+	Lcd_PrintStringAndNumber(12, 2, "I2cRes:", temp, 3);
 
 	//Значение энкодера MCUv7.
 	temp = PROTOCOL_MASTER_I2C_GetDataMCU()->EncoderAngle;
-	Lcd_PrintStringAndNumber(1, 4, "EncAngle: ", temp, 6);
-//
-//	//Значение оптических датчиков
-////	temp = PROTOCOL_MASTER_I2C_GetDataMCU()->Sense;
-////	Lcd_SetCursor(1, 5);
-////	Lcd_Print("Sense:");
-////	Lcd_u32ToHex(temp);
-//
-//	//Напряжения питания MCU
-//	temp = PROTOCOL_MASTER_I2C_GetDataMCU()->SupplyVoltageVal;
-//	Lcd_PrintStringAndNumber(1, 6, "Vin  : ", temp, 5);
-//	Lcd_Print(" mV");
-//
-//	//Вывод темперетуры DS18B20.
-//	Sensor_1.TEMPERATURE_SIGN = PROTOCOL_MASTER_I2C_GetDataMCU()->TemperatureSense1 >> 24;
-//	Sensor_1.TEMPERATURE      = PROTOCOL_MASTER_I2C_GetDataMCU()->TemperatureSense1 & 0x0000FFFF;
-//
-//	Sensor_2.TEMPERATURE_SIGN = PROTOCOL_MASTER_I2C_GetDataMCU()->TemperatureSense2 >> 24;
-//	Sensor_2.TEMPERATURE      = PROTOCOL_MASTER_I2C_GetDataMCU()->TemperatureSense2 & 0x0000FFFF;
-//
-//	Temperature_Display(1, 7, &Sensor_1);
-//	Temperature_Display(1, 8, &Sensor_2);
-	//----------------------------------------------
-	//Расчет процентов заряда АКБ и отображение уровня заряда.
-	#define	V_BAT_MIN_mV	10800U	//
-	#define	V_BAT_MAX_mV	16800U	//
-	#define	DEVIDER			(V_BAT_MAX_mV - V_BAT_MIN_mV)
+	Lcd_PrintStringAndNumber(1, 3, "EncAngle: ", temp, 6);
 
+	//Вывод темперетуры DS18B20.
+	Sensor_1.TEMPERATURE_SIGN = PROTOCOL_MASTER_I2C_GetDataMCU()->TemperatureSense1 >> 24;
+	Sensor_1.TEMPERATURE      = PROTOCOL_MASTER_I2C_GetDataMCU()->TemperatureSense1 & 0x0000FFFF;
+
+	Sensor_2.TEMPERATURE_SIGN = PROTOCOL_MASTER_I2C_GetDataMCU()->TemperatureSense2 >> 24;
+	Sensor_2.TEMPERATURE      = PROTOCOL_MASTER_I2C_GetDataMCU()->TemperatureSense2 & 0x0000FFFF;
+
+	Temperature_Display(1, 4, &Sensor_1);
+	Temperature_Display(1, 5, &Sensor_2);
+
+	//Напряжения питания MCU
 	temp = PROTOCOL_MASTER_I2C_GetDataMCU()->SupplyVoltageVal;
-	if(temp < V_BAT_MIN_mV) temp = V_BAT_MIN_mV;
-	uint32_t percent = ((100000 * (temp - V_BAT_MIN_mV)) / DEVIDER) / 1000;
+	Lcd_PrintStringAndNumber(1, 6, "Vin  : ", temp, 5);
+	Lcd_Print(" mV");
 
-	if(percent > 100) percent = 100;
+	//Значение оптических датчиков
+//	temp = PROTOCOL_MASTER_I2C_GetDataMCU()->Sense;
+//	Lcd_SetCursor(1, 7);
+//	Lcd_Print("Sense:");
+//	Lcd_u32ToHex(temp);
+	//----------------------------------------------
+	//Отображение заряда АКБ в виде батарейки.
+	uint8_t batPercent = Battery_GetPercentCharge();
 
 //	Lcd_SetCursor(16, 7);
 //	Lcd_PrintBig("%");
-//	Lcd_BinToDec(percent, 3, LCD_CHAR_SIZE_BIG);
-//
+//	Lcd_BinToDec(batPercent, 3, LCD_CHAR_SIZE_BIG);
 //	Lcd_Bar(114, 2, 124, 17, (uint8_t)percent);
 	//----------------------------------------------
-	//Горизонтальная шкала
+	//Горизонтальная шкала с рисками.
+	Lcd_HorizontalProgressBar(3, 2, batPercent); //map(batPercent, 0, 100, 0, 100));
 
-	//num подряд идущих двойных вертикальных высоких палочек с шагом step
-	uint8_t	num    = 5;				  //Необходимое кол-во вертикальных высоких палочек на шкале.
-	uint8_t step_x = 100 / (num - 1); //Шаг между палочками
-	uint8_t n_x    = 2;				  //Начальная координата по Х первой палочки.
-
-	for(uint8_t i = 0; i < num; i++)
-	{
-		Lcd_Line(n_x, 1, n_x, 5, PIXEL_ON); //Вертикальная палочка высотой 5 пикселей.
-		//Lcd_Line(1*n_x+1, 1, 1*n_x+1, 5, PIXEL_ON);
-		n_x += step_x;
-	}
-
-	//Циферки над высокими черточками
-	Lcd_SetCursor(1, 7);
-	Lcd_Print("0   25  50  75  100");
-
-	//lowNum подряд идущих двойных вертикальных низких палочек
-	uint8_t lowNum    = (uint8_t)percent;//Кол-во палочек, макс 127
-	uint8_t lowStep_x = 1;				 //Шаг между палочками
-	uint8_t lowN_x    = 2;				 //Начальная координата по Х первой палочки.
-
-	lowNum /= lowStep_x;//равномерное распределение шагов на всю шкалу.
-
-	for(uint8_t i = 0; i < lowNum; i++)
-	{
-		Lcd_Line(lowN_x ,1 ,lowN_x ,3 ,PIXEL_ON);//Вертикальная палочка высотой 3 пикселя.
-		lowN_x += lowStep_x;
-	}
-
-
+//	uint8_t x0	      = 3;		//Начальная координата шкалы по Х.
+//	uint8_t y0	      = 2;		//Начальная координата шкалы по Х.
+//	uint8_t	numMarks  = 5;		//Необходимое кол-во вертикальных рисок на шкале.
+//	uint8_t scaleStep = 1;		//Шаг в пикселях приращения шкалы
+//	uint8_t maxVal 	  = 100;	//Максимальное отображаемое значение, макс. 127 (на дисплее макс 128 пикселей).
+//	uint8_t sigLevel  = (uint8_t)map(percent, 0, 100, 0, maxVal);//Отображаемый сигнал . Мин. 0, макс. 127.
+//
+//	//Рисуем риски.
+//	uint8_t stepCount = x0;
+//	uint8_t marksStep = maxVal / (numMarks-1);//Шаг между рисками.
+//	for(uint8_t i = 0; i < numMarks; i++)
+//	{
+//		Lcd_Line(stepCount, y0, stepCount, y0+4, PIXEL_ON);//Первая Вертикальная палочка высотой 5 пикселей.
+//		//Lcd_Line(stepCount+1, 1, stepCount+1, 5, PIXEL_ON);//Вторая Вертикальная палочка высотой 5 пикселей.
+//		stepCount += marksStep;
+//	}
+//	//Рисуем шкалу.
+//	stepCount = x0;
+//	sigLevel /= scaleStep;//равномерное распределение шагов на всю шкалу.
+//	for(uint8_t i = 0; i < sigLevel; i++)
+//	{
+//		Lcd_Line(stepCount, y0, stepCount, y0+2, PIXEL_ON);//Вертикальная палочка высотой 3 пикселя.
+//		stepCount += scaleStep;
+//	}
+//	//Циферки над рисками шкалы
+//	Lcd_SetCursor(1, 7);
+//	Lcd_Print("0   25  50  75  100");
+	//----------------------------------------------
 	//Кнопка энкодера.
 //	IncrementOnEachPass(&ButtonPressCount, Encoder.BUTTON_STATE);
 //	Lcd_SetCursor(1, 8);
 //	Lcd_Print("Button=");
 //	Lcd_BinToDec((uint16_t)ButtonPressCount, 4, LCD_CHAR_SIZE_NORM);
+}
+//*******************************************************************************************
+//*******************************************************************************************
+//*******************************************************************************************
+//*******************************************************************************************
+void Task_AnalogMeter(void){
+
+	//-------------------
+	//Очистка видеобуфера.
+	Lcd_ClearVideoBuffer();
+	//Шапка
+	Lcd_SetCursor(1, 1);
+	Lcd_Print("AnalogMeter");
+	//Вывод времени.
+	Time_Display(14, 1);
+	//-------------------
+	//Расчет процентов заряда АКБ
+	uint8_t batPercent = Battery_GetPercentCharge();
+	//-------------------
+	//Энкодер
+	static uint32_t angle = 50;
+//	ENCODER_IncDecParam(&Encoder, &angle, 1, 50 , 132);
+	Lcd_PrintStringAndNumber(1, 2, "Angle: ", angle, 3);
+	//-------------------
+	//Аналговая стрелочная шкала.
+	angle = map_I32(batPercent, 1, 100, ANALOG_SCALE_ANGLE_MIN, ANALOG_SCALE_ANGLE_MAX);
+	Lcd_AnalogScale(angle);
 }
 //*******************************************************************************************
 //*******************************************************************************************
@@ -363,16 +522,20 @@ void Task_DisplayPageSelect(void){
 	TIME_Calculation(&Time, PROTOCOL_MASTER_I2C_GetDataMCU()->msCount);//RTOS_GetTickCount());
 
 	//Если на какой-то странице производится редактирование то выбор страницы запрешен
-	if(!redaction) ENCODER_IncDecParam(&Encoder, &pageIndex, 1, 0, 2);//Выбор сраницы
+	if(!redaction) ENCODER_IncDecParam(&Encoder, &pageIndex, 1, 0, 3);//Выбор сраницы
 	switch(pageIndex){
 		//--------------------
 		case 0:
-			RTOS_SetTask(PROTOCOL_MASTER_I2C_RequestToMCU, 1, 0);
+			//RTOS_SetTask(PROTOCOL_MASTER_I2C_RequestToMCU, 1, 0);
 			RTOS_SetTask(Task_MCUv7DataDisplay, 2, 0);
 		break;
 		//--------------------
 		case 1:
-			RTOS_SetTask(Task_DS2782,	  	  1, 0);
+			RTOS_SetTask(Task_AnalogMeter, 2, 0);
+		break;
+		//--------------------
+		case 2:
+			//RTOS_SetTask(Task_DS2782,	  	  1, 0);
 			RTOS_SetTask(Task_DS2782_Display, 2, 0);
 		break;
 		//--------------------
@@ -383,6 +546,7 @@ void Task_DisplayPageSelect(void){
 		break;
 		//--------------------
 	}
+	RTOS_SetTask(PROTOCOL_MASTER_I2C_RequestToMCU, 1, 0);
 	//Проверка состяния системного регистра SystemCtrlReg
 	if(PROTOCOL_MASTER_I2C_GetDataMCU()->SysCtrlReg.f_PwrOff) BigBoardPwr_Off();
 	else 									  				  BigBoardPwr_On();
@@ -406,7 +570,6 @@ int main(void){
 	Gpio_Init();
 	DELAY_Init();
 	USART_Init(USART1, USART1_BRR);
-
 	DELAY_milliS(250);//Эта задержка нужна для стабилизации напряжения патания.
 					  //Без задержки LCD-дисплей не работает.
 	//***********************************************
