@@ -25,8 +25,10 @@ void 	SPI_Enable(SPI_TypeDef *spi);
 void 	SPI_Disable(SPI_TypeDef *spi);
 void    SPI_BiDirMode(SPI_TypeDef *spi, uint8_t mode);
 
+uint8_t SPI_RxByte(SPI_TypeDef *spi);
+void    SPI_TxByte(SPI_TypeDef *spi, uint8_t byte);
 uint8_t	SPI_TxRxByte(SPI_TypeDef *spi, uint8_t byte);
-uint8_t SPI_RxData(SPI_TypeDef *spi);
+
 
 //void     Spi1Init(void);
 //uint8_t	 Spi1TxRxByte(uint8_t byte);

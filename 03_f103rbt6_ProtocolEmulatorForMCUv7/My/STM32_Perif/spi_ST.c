@@ -71,13 +71,14 @@ void SPI_Init(SPI_TypeDef *spi){
 	//--------------------
 	spi->CR1  = 0;
 	spi->CR1 |=( SPI_CR1_MSTR         | //режим "мастер".
-			 	(4 << SPI_CR1_BR_Pos) | //задаем скорость. Fpclk/32 = 36MHz/32 = 1.125MHz
+			 	//(4 << SPI_CR1_BR_Pos) | //задаем скорость. Fpclk/32 = 36MHz/32 = 1.125MHz
+				(0 << SPI_CR1_BR_Pos) | //задаем скорость. Fpclk/2 = 36MHz/2 = 18MHz!!!
 				//SPI_CR1_LSBFIRST |	//Младшим битом вперед
 				SPI_CR1_CPHA |
 				SPI_CR1_CPOL |
 				//SPI_CR1_DFF  | // 16 бит данных.
 				SPI_CR1_SSI  |   //обеспечить высокий уровень программного NSS
-				SPI_CR1_SSM  |  //разрешить программное формирование NSS
+				SPI_CR1_SSM  |   //разрешить программное формирование NSS
 				SPI_CR1_SPE   ); //разрешить работу модуля SPI
 	//--------------------
 //	SPI2->CR1    |= SPI_CR1_LSBFIRST;
@@ -100,26 +101,6 @@ void SPI_Enable(SPI_TypeDef *spi){
 void SPI_Disable(SPI_TypeDef *spi){
 
 	spi->CR1 &= ~(SPI_CR1_SPE);
-}
-//************************************************************
-//Передача данных(8 бит) в SPI.
-uint8_t	SPI_TxRxByte(SPI_TypeDef *spi, uint8_t byte){
-
-	volatile uint32_t spiWaitCount = 0;
-	//--------------------
-	//Если SPI не проинециализирован ,то выходим.
-	//if(!(Spi1StatusReg & SPI_INIT)) return 0;
-	//Ожидание освобождения передающего буфера.
-	while(!(spi->SR & SPI_SR_TXE))
-	{if(++spiWaitCount > SPI_WAIT) return 0;}
-	spiWaitCount = 0;
-
-	spi->DR = byte;
-
-	while(spi->SR & SPI_SR_BSY)
-	{if(++spiWaitCount > SPI_WAIT) return 0;}
-	//--------------------
-	return (uint8_t)spi->DR;
 }
 //************************************************************
 void SPI_BiDirMode(SPI_TypeDef *spi, uint8_t mode){
@@ -146,6 +127,33 @@ uint8_t SPI_RxData(SPI_TypeDef *spi){
   if(spi_LongWait(spi, !SPI_SR_RXNE)) return 0;
 
   return spi->DR;
+}
+//************************************************************
+void SPI_TxByte(SPI_TypeDef *spi, uint8_t byte){
+
+	while(!(spi->SR & SPI_SR_TXE));//Ожидание освобождения передающего буфера.
+	spi->DR = byte;
+	while( spi->SR & SPI_SR_BSY);  //
+}
+//************************************************************
+//Передача данных(8 бит) в SPI.
+uint8_t	SPI_TxRxByte(SPI_TypeDef *spi, uint8_t byte){
+
+	volatile uint32_t spiWaitCount = 0;
+	//--------------------
+	//Если SPI не проинециализирован ,то выходим.
+	//if(!(Spi1StatusReg & SPI_INIT)) return 0;
+	//Ожидание освобождения передающего буфера.
+	while(!(spi->SR & SPI_SR_TXE))
+	{if(++spiWaitCount > SPI_WAIT) return 0;}
+	spiWaitCount = 0;
+
+	spi->DR = byte;
+
+	while(spi->SR & SPI_SR_BSY)
+	{if(++spiWaitCount > SPI_WAIT) return 0;}
+	//--------------------
+	return (uint8_t)spi->DR;
 }
 //************************************************************
 

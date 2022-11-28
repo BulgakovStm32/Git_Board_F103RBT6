@@ -22,14 +22,14 @@ static void ClearTextBuf(void){
 //***************************Работа с выводом изображения на дисплей.**************************
 void Lcd_Init(void){
 
-	Lm6063LcdInit();
+	LCD_LM6063_Init();
 	//SSD1306_Init(SSD1306_I2C, SSD1306_128x64, I2C_GPIO_NOREMAP);
 }
 //*****************************************************************************
 //Вывод буфера на дисплей.
 void Lcd_Update(void){
 
-	Lm6063LcdUpdate(lcdVideoBuffer);
+	LCD_LM6063_Update(lcdVideoBuffer);
 //	Lcd_TIC32_SendData(lcdVideoBuffer);
 //	SSD1306_UpdateScreen(lcdVideoBuffer, LCD_VIDEO_BUFFER_SIZE);
 }

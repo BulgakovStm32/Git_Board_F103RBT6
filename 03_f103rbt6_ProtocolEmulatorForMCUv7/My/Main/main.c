@@ -67,44 +67,83 @@ int32_t map_I32(int32_t value, int32_t in_min, int32_t in_max, int32_t out_min, 
 //*******************************************************************************************
 //*******************************************************************************************
 //стрелочный индикатор
-#define ANALOG_SCALE_ANGLE_MIN	50
-#define ANALOG_SCALE_ANGLE_MAX	132
+#define ANALOG_SCALE_X0			64  				//Х-координата центра шкалы (в пикселях)
+#define ANALOG_SCALE_Y0	 	   -65  				//Y-координата центра шкалы (в пикселях)
+#define ANALOG_SCALE_RADIUS		95					//радиус шкалы (в пикселях)
+#define ANALOG_SCALE_PI_2_8		(float)(M_PI_2 / 8) //шаг, с которым рисуются риски шкалы (радианы)
+
+#define ANALOG_SCALE_MULTIPLIER  10									  //множитель, показывающий на сколько частей разбиваем один градус перемещения стрелки.
+#define ANALOG_SCALE_ANGLE_MIN	(5  * ANALOG_SCALE_MULTIPLIER)		  //мин. угол поверота стрелки (слева направо) (в градусах).
+#define ANALOG_SCALE_ANGLE_MAX	(85 * ANALOG_SCALE_MULTIPLIER)		  //макс.угол поверота стрелки (слева направо) (в градусах).
+
+#define ANALOG_SCALE_SECTOR		(90 * ANALOG_SCALE_MULTIPLIER)		  //ширина сектора в котором богает стрлека (в градусах).
+#define ANALOG_SCALE_PHI		(45 * ANALOG_SCALE_MULTIPLIER)  	  //поворот сектора ANALOG_SCALE_SECTOR от нуля градусов (в градусах).
+#define ANALOG_SCALE_K_RAD		(float)(M_PI_2 / ANALOG_SCALE_SECTOR) //коэф-т для перевода углов в радианы.
 
 /*
  * Параметры:
  * angle :угол на который нужно повернуть стрелку (слева направо)
- *		  мин. уол  - 50  градусов.
- *		  макс.угол - 132 градуса.
+ *		  мин. уол  - ANALOG_SCALE_ANGLE_MIN градусов.
+ *		  макс.угол - ANALOG_SCALE_ANGLE_MAX градусов.
  */
-void Lcd_AnalogScale(uint8_t angle){
+void Lcd_AnalogScale(uint32_t angle){
 
-//	uint8_t angle = encod;  //угол на который нужно повернуть стрелку (слева направо)
-							//мин. уол  - 50 градусов.
-							//макс.угол - 132 градуса.
-	uint8_t markRadius = 95;// Радиус шкалы.
-	int8_t  x0 =  64;		// Х-координата центра шкалы
-	int8_t  y0 = -60; 		// У-координата центра шкалы.
+//	uint8_t markRadius = 95;// Радиус шкалы.
+//	int8_t  x0 =  64;		// Х-координата центра шкалы
+//	int8_t  y0 = -60; 		// У-координата центра шкалы.
+//	//-------------------
+//	//Рисуем риски-метки шкалы
+//	for(float i = 0; i < M_PI; i += M_PI / 14)
+//	{
+//		Lcd_Line(x0 +  markRadius    * cosf(i),	//x1
+//				 y0 +  markRadius    * sinf(i),	//y1
+//				 x0 + (markRadius-6) * cosf(i), //x2
+//				 y0 + (markRadius-6) * sinf(i), //y2
+//				 PIXEL_ON);
+//	}
+//	//Стрелка.
+//	angle = (180 - angle); 	     	   //Это нужно чтобы стрелка двигалась слева направо.
+//	float rad = angle * (M_PI / 180.0);//перевод углов в радианы
+//	float cos = cosf(rad);
+//	float sin = sinf(rad);
+//	x0 += 1; //небольшое смещение по Х что бы стрелка точно поподала в среднюю риску.
+//	y0 += 5; //небольшое смещение по Y что бы стрелка поподала в риски.
+//	Lcd_Line(x0 + (markRadius) * cos,
+//			 y0 + (markRadius) * sin,
+//			 x0 + 1 * cos,
+//			 y0 + 1 * sin,
+//			 PIXEL_ON);
+
+
+//	const uint8_t markRadius = 95;// Радиус шкалы.
+//	int8_t x0 =  62;//64;		 //Х-координата центра шкалы
+//	int8_t y0 = ANALOG_SCALE_Y0; //Y-координата центра шкалы.
+	float cos;
+	float sin;
 	//-------------------
 	//Рисуем риски-метки шкалы
-	for(float i = 0; i < M_PI; i += M_PI / 14)
+	for(float i = 0; i < M_PI_2; i += ANALOG_SCALE_PI_2_8)
 	{
-		Lcd_Line(x0 +  markRadius    * cosf(i),	//x1
-				 y0 +  markRadius    * sinf(i),	//y1
-				 x0 + (markRadius-6) * cosf(i), //x2
-				 y0 + (markRadius-6) * sinf(i), //y2
+		cos = cosf(i + M_PI_4);
+		sin = sinf(i + M_PI_4);
+		Lcd_Line(ANALOG_SCALE_X0 +  ANALOG_SCALE_RADIUS    * cos,
+				 ANALOG_SCALE_Y0 +  ANALOG_SCALE_RADIUS    * sin,
+				 ANALOG_SCALE_X0 + (ANALOG_SCALE_RADIUS-6) * cos,
+				 ANALOG_SCALE_Y0 + (ANALOG_SCALE_RADIUS-6) * sin,
 				 PIXEL_ON);
 	}
 	//Стрелка.
-	angle = (180 - angle); 	     	   //Это нужно чтобы стрелка двигалась слева направо.
-	float rad = angle * (M_PI / 180.0);//перевод углов в радианы
-	float cos = cosf(rad);
-	float sin = sinf(rad);
-	x0 += 1; //небольшое смещение по Х что бы стрелка точно поподала в среднюю риску.
-	y0 += 5; //небольшое смещение по Y что бы стрелка поподала в риски.
-	Lcd_Line(x0 + (markRadius) * cos,
-			 y0 + (markRadius) * sin,
-			 x0 + 1 * cos,
-			 y0 + 1 * sin,
+	angle  = (ANALOG_SCALE_SECTOR - angle);	//это нужно чтобы стрелка двигалась слева направо.
+	angle += ANALOG_SCALE_PHI;				//поворот сектора отображения стрелки от нуля градусов.
+	float rad = angle * ANALOG_SCALE_K_RAD; //перевод углов в радианы
+	cos = cosf(rad);
+	sin = sinf(rad);
+	//x0 += 1; //небольшое смещение по Х что бы стрелка точно поподала в среднюю риску.
+	//y0 += 5; //небольшое смещение по Y что бы стрелка поподала в риски.
+	Lcd_Line(ANALOG_SCALE_X0 + ANALOG_SCALE_RADIUS * cos,
+			 ANALOG_SCALE_Y0 + 5 + ANALOG_SCALE_RADIUS * sin,
+			 ANALOG_SCALE_X0 + 1 * cos,
+			 ANALOG_SCALE_Y0 + 5 + 1 * sin,
 			 PIXEL_ON);
 }
 //************************************************************
@@ -112,9 +151,9 @@ void Lcd_AnalogScale(uint8_t angle){
 
 /*
  * Параметры:
- * x0	   : начальная координата шкалы по Х (мин. 0, макс. 127).
- * y0	   : начальная координата шкалы по Y (мин. 0, макс. 63).
- * sigLevel: отображаемое значение (мин. 0, макс. 127)
+ * x0	: начальная координата шкалы по Х (мин. 0, макс. 127).
+ * y0	: начальная координата шкалы по Y (мин. 0, макс. 63).
+ * level: отображаемое значение (мин. 0, макс. 127)
  *
  */
 void Lcd_HorizontalProgressBar(uint8_t x0, uint8_t y0, uint8_t level){
@@ -425,40 +464,6 @@ void Task_MCUv7DataDisplay(void){
 	//----------------------------------------------
 	//Горизонтальная шкала с рисками.
 	Lcd_HorizontalProgressBar(3, 2, batPercent); //map(batPercent, 0, 100, 0, 100));
-
-//	uint8_t x0	      = 3;		//Начальная координата шкалы по Х.
-//	uint8_t y0	      = 2;		//Начальная координата шкалы по Х.
-//	uint8_t	numMarks  = 5;		//Необходимое кол-во вертикальных рисок на шкале.
-//	uint8_t scaleStep = 1;		//Шаг в пикселях приращения шкалы
-//	uint8_t maxVal 	  = 100;	//Максимальное отображаемое значение, макс. 127 (на дисплее макс 128 пикселей).
-//	uint8_t sigLevel  = (uint8_t)map(percent, 0, 100, 0, maxVal);//Отображаемый сигнал . Мин. 0, макс. 127.
-//
-//	//Рисуем риски.
-//	uint8_t stepCount = x0;
-//	uint8_t marksStep = maxVal / (numMarks-1);//Шаг между рисками.
-//	for(uint8_t i = 0; i < numMarks; i++)
-//	{
-//		Lcd_Line(stepCount, y0, stepCount, y0+4, PIXEL_ON);//Первая Вертикальная палочка высотой 5 пикселей.
-//		//Lcd_Line(stepCount+1, 1, stepCount+1, 5, PIXEL_ON);//Вторая Вертикальная палочка высотой 5 пикселей.
-//		stepCount += marksStep;
-//	}
-//	//Рисуем шкалу.
-//	stepCount = x0;
-//	sigLevel /= scaleStep;//равномерное распределение шагов на всю шкалу.
-//	for(uint8_t i = 0; i < sigLevel; i++)
-//	{
-//		Lcd_Line(stepCount, y0, stepCount, y0+2, PIXEL_ON);//Вертикальная палочка высотой 3 пикселя.
-//		stepCount += scaleStep;
-//	}
-//	//Циферки над рисками шкалы
-//	Lcd_SetCursor(1, 7);
-//	Lcd_Print("0   25  50  75  100");
-	//----------------------------------------------
-	//Кнопка энкодера.
-//	IncrementOnEachPass(&ButtonPressCount, Encoder.BUTTON_STATE);
-//	Lcd_SetCursor(1, 8);
-//	Lcd_Print("Button=");
-//	Lcd_BinToDec((uint16_t)ButtonPressCount, 4, LCD_CHAR_SIZE_NORM);
 }
 //*******************************************************************************************
 //*******************************************************************************************
@@ -479,12 +484,15 @@ void Task_AnalogMeter(void){
 	uint8_t batPercent = Battery_GetPercentCharge();
 	//-------------------
 	//Энкодер
-	static uint32_t angle = 50;
-//	ENCODER_IncDecParam(&Encoder, &angle, 1, 50 , 132);
-	Lcd_PrintStringAndNumber(1, 2, "Angle: ", angle, 3);
+	static uint32_t angle = (ANALOG_SCALE_ANGLE_MAX - ANALOG_SCALE_ANGLE_MIN) / 2;
+//	ENCODER_IncDecParam(&Encoder, &angle, 1, ANALOG_SCALE_ANGLE_MIN , ANALOG_SCALE_ANGLE_MAX);
 	//-------------------
 	//Аналговая стрелочная шкала.
 	angle = map_I32(batPercent, 1, 100, ANALOG_SCALE_ANGLE_MIN, ANALOG_SCALE_ANGLE_MAX);
+
+//	Lcd_PrintStringAndNumber(1, 2, "Angle: ", angle, 3);
+	Lcd_PrintStringAndNumber(1, 2, "Percent: ", batPercent, 3);
+
 	Lcd_AnalogScale(angle);
 }
 //*******************************************************************************************

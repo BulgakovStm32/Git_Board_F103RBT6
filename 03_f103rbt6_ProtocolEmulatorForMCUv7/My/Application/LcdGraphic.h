@@ -14,8 +14,8 @@
 #define LCD_VIDEO_BUFFER_SIZE  ((LCD_X_RES * LCD_Y_RES) / 8)  //
 #define LCD_TEXT_BUFFER_SIZE   22
 //
-#define	X0	0xb8
-#define	Y0	0x40
+#define	LCD_X0				0xb8
+#define	LCD_Y0				0x40
 //режимы отображения пикселя - используются в графических функциях
 #define PIXEL_OFF	        0
 #define PIXEL_ON	        1
