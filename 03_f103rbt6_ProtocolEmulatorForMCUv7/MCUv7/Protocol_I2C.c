@@ -15,8 +15,8 @@
 static I2C_IT_t	 	I2cProtocol;
 static MCUv7_Data_t MCUc7Data;
 
-static uint32_t responseSize = 0;
-static uint32_t ledFlag      = 0;
+static uint32_t responseSize           = 0;
+static uint32_t protocol_i2c_activFlag = 0;
 
 //*******************************************************************************************
 //*******************************************************************************************
@@ -29,8 +29,8 @@ static void I2cRxParsing(void){
 	uint8_t crcReq  = response->Payload[response->Count-1];
 	if(crcCalc != crcReq) return;//если CRC не совпадает то выходим.
 	//-----------------------------
-	I2cProtocol.timeOut = 0; //Сброс таймаута.
-	ledFlag = 1;		 	 //Индикация приема пакета.
+	I2cProtocol.timeOut    = 0; //Сброс таймаута.
+	protocol_i2c_activFlag = 1; //Индикация приема пакета.
 	//Разбор пришедшего пакета
 	switch(response->CmdCode){
 		//------------------
@@ -85,6 +85,11 @@ static void I2cRxParsing(void){
 //************************************************************
 static void I2cTxParsing(void){
 
+}
+//************************************************************
+static void _protocol_i2c_ActIndication(void){
+
+	LED_PC13_Toggle();
 }
 //*******************************************************************************************
 //*******************************************************************************************
@@ -313,19 +318,19 @@ void PROTOCOL_MASTER_I2C_IncTimeoutAndReset(void){
 		//I2cProtocol.resetCount++;
 		//I2C_IT_Init(&I2cWire);
 		//I2C_DMA_Init(&I2cWire);
-		PROTOCOL_MASTER_I2C_Init();//Повторная инициализация I2C.
-		LedPC13Toggel();//Индикация отсутствия обмена.
+		_protocol_i2c_ActIndication();//Индикация отсутствия обмена.
+		PROTOCOL_MASTER_I2C_Init();   //Повторная инициализация I2C.
 	}
 	//-----------------------------------------
 	//Индикация обмена. Мигаем светодиодом.
 	static uint32_t ledCount = 0;
-	if(ledFlag)
+	if(protocol_i2c_activFlag)
 	{
 		if(++ledCount >= 50)
 		{
-			ledCount = 0;
-			ledFlag  = 0;
-			LedPC13Toggel();
+			ledCount 			   = 0;
+			protocol_i2c_activFlag = 0;
+			_protocol_i2c_ActIndication();
 		}
 	}
 	//-----------------------------------------

@@ -6,35 +6,19 @@
 
 //*******************************************************************************************
 //*******************************************************************************************
-static uint8_t *pVideoBuffer;//указатель на видеобуфер.
-static uint32_t SSD1306_lcdType = 0; //
-
-/* Private variable */
+static uint8_t  *pVideoBuffer;//указатель на видеобуфер.
+static uint32_t  SSD1306_lcdType = 0; //
 static SSD1306_t SSD1306;
-//********************************************
-//extern const uint16_t Font7x10[];
-//extern const uint16_t Font11x18[];
-//extern const uint16_t Font16x26[];
-//
-//FontDef_t Font_7x10 = {
-//	7,
-//	10,
-//	Font7x10
-//};
-////**********************
-//FontDef_t Font_11x18 = {
-//	11,
-//	18,
-//	Font11x18
-//};
-////**********************
-//FontDef_t Font_16x26 = {
-//	16,
-//	26,
-//	Font16x26
-//};
+
 //*******************************************************************************************
 //*******************************************************************************************
+//*******************************************************************************************
+//*******************************************************************************************
+static void ssd1306_I2C_Init(void){
+	
+	//I2C_Master_Init(i2c, i2cRemap, 400000);
+}
+//***********************************************************************
 /**
  * @brief  Writes multi bytes to slave
  * @param  *I2Cx: I2C used
@@ -46,7 +30,7 @@ static SSD1306_t SSD1306;
  */
 static void ssd1306_I2C_WriteDataBuf(uint8_t *pData, uint32_t len){
 
-	//I2C_Write(SSD1306_I2C, SSD1306_I2C_ADDR, 0x40, pData, len);
+	I2C_Master_Write(SSD1306_I2C, SSD1306_I2C_ADDR, 0x40, pData, len);
 //	I2C_DMA_Write(SSD1306_I2C, SSD1306_I2C_ADDR, 0x40, pData, len);
 }
 //***********************************************************************
@@ -60,15 +44,17 @@ static void ssd1306_I2C_WriteDataBuf(uint8_t *pData, uint32_t len){
  */
 static uint32_t ssd1306_I2C_WriteCMD(uint8_t cmd){
 
-//	return I2C_Write(SSD1306_I2C, SSD1306_I2C_ADDR, 0, &cmd, 1);
-	return 0;
+	return I2C_Master_Write(SSD1306_I2C, SSD1306_I2C_ADDR, 0, &cmd, 1);
 }
 //*******************************************************************************************
 //*******************************************************************************************
-uint32_t SSD1306_Init(I2C_TypeDef *i2c, uint32_t lcdType, uint32_t i2cRemap){
+//*******************************************************************************************
+//*******************************************************************************************
+uint32_t SSD1306_Init(uint32_t lcdType){
 
 	/* Init I2C */
-//	I2C_Init(i2c, i2cRemap);
+	ssd1306_I2C_Init();
+
 	/* Init LCD */
 	//pVideoBuffer = Lcd_pVideoBuffer();
 	//if(ssd1306_I2C_WriteCMD(0xAE) != I2C_OK) return 1; //display off
@@ -125,7 +111,7 @@ uint32_t SSD1306_Init(I2C_TypeDef *i2c, uint32_t lcdType, uint32_t i2cRemap){
 //***********************************************************************
 void SSD1306_UpdateScreen(uint8_t *pBuf, uint32_t size){
 
-//	//Передача данных для дисплея 1,25"
+	//Передача данных для дисплея 1,25"(диагональ 3,175мм).
 //	for(uint8_t m = 0; m < 8; m++)
 //	{
 //		ssd1306_I2C_WriteCMD(0xB0 + m);//Set Page Start Address for Page Addressing Mode,0-7
@@ -134,17 +120,16 @@ void SSD1306_UpdateScreen(uint8_t *pBuf, uint32_t size){
 //		/* Write multi data */
 //		ssd1306_I2C_WriteDataBuf(&pBuf[SSD1306_WIDTH * m], SSD1306_WIDTH);
 //	}
-
 	//-------------------------
 	//Передача видеобуфера за 8 раз по 128 байт. 128 байт передаются за 3.25мС.
-	static uint32_t count = 0;
-	uint32_t cmd = 0;
+	static uint8_t count = 0;
+		   uint8_t cmd   = 0;
 
 //	if(I2C_DMA_State() != I2C_DMA_READY) return;
 	if(SSD1306_lcdType == SSD1306_128x64) cmd = 0x02;//смещение вывода изображениея на 2 столбца.
 
 	ssd1306_I2C_WriteCMD(0xB0 + count);//Set Page Start Address for Page Addressing Mode,0-7.
-	ssd1306_I2C_WriteCMD((uint8_t)cmd);//Set low column address.
+	ssd1306_I2C_WriteCMD(cmd);		   //Set low column address.
 	ssd1306_I2C_WriteCMD(0x10);    	   //Set high column address.
 	ssd1306_I2C_WriteDataBuf(&pBuf[SSD1306_WIDTH * count], SSD1306_WIDTH);
 	if(++count >= 8) count = 0;

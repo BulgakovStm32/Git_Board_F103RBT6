@@ -65,49 +65,49 @@ static uint8_t Tic32Buf[2] = {0};
 //Инициализация PCF8531
 void Lcd_TIC32_Init(void){
 
-	I2C_Master_Init(LCD_TIC32_I2C, 0);
+	//I2C_Master_Init(LCD_TIC32_I2C, I2C_GPIO_NOREMAP, 400000);
 	//-------------------------
 	I2C_StartAndSendDeviceAddr(LCD_TIC32_I2C, LCD_TIC32_ADDR);
 	//на основн стр
 	Tic32Buf[0] = LCD_TIC32_CON1;
 	Tic32Buf[1] = 0x01;
-	I2C_SendData(LCD_TIC32_I2C, Tic32Buf, 2);
+	I2C_SendDataWithoutStop(LCD_TIC32_I2C, Tic32Buf, 2);
 	//Enable chip, горизонтальная
 	Tic32Buf[0] = LCD_TIC32_CON1;
 	Tic32Buf[1] = 0b00100000;
-	I2C_SendData(LCD_TIC32_I2C, Tic32Buf, 2);
+	I2C_SendDataWithoutStop(LCD_TIC32_I2C, Tic32Buf, 2);
 	//page select
 	Tic32Buf[0] = LCD_TIC32_CON1;
 	Tic32Buf[1] = 0b00001001;
-	I2C_SendData(LCD_TIC32_I2C, Tic32Buf, 2);
+	I2C_SendDataWithoutStop(LCD_TIC32_I2C, Tic32Buf, 2);
 	//Display Mode: NORMAL
 	Tic32Buf[0] = LCD_TIC32_CON1;
 	Tic32Buf[1] = 0b00001100;
-	I2C_SendData(LCD_TIC32_I2C, Tic32Buf, 2);
+	I2C_SendDataWithoutStop(LCD_TIC32_I2C, Tic32Buf, 2);
 	//MUX-rate: 1/34
 	Tic32Buf[0] = LCD_TIC32_CON1;
 	Tic32Buf[1] = 0b00000101;
-	I2C_SendData(LCD_TIC32_I2C, Tic32Buf, 2);
+	I2C_SendDataWithoutStop(LCD_TIC32_I2C, Tic32Buf, 2);
 	//Bias system: 3
 	Tic32Buf[0] = LCD_TIC32_CON1;
 	Tic32Buf[1] = 0b00010100;
-	I2C_SendData(LCD_TIC32_I2C, Tic32Buf, 2);
+	I2C_SendDataWithoutStop(LCD_TIC32_I2C, Tic32Buf, 2);
 	// на основн стр
 	Tic32Buf[0] = LCD_TIC32_CON1;
 	Tic32Buf[1] = 0x01;
-	I2C_SendData(LCD_TIC32_I2C, Tic32Buf, 2);
+	I2C_SendDataWithoutStop(LCD_TIC32_I2C, Tic32Buf, 2);
 	// page select
 	Tic32Buf[0] = LCD_TIC32_CON1;
 	Tic32Buf[1] = 0b00001010;
-	I2C_SendData(LCD_TIC32_I2C, Tic32Buf, 2);
+	I2C_SendDataWithoutStop(LCD_TIC32_I2C, Tic32Buf, 2);
 	// voltage multiplication factor: 2*V
 	Tic32Buf[0] = LCD_TIC32_CON1;
 	Tic32Buf[1] = 0b00001011;
-	I2C_SendData(LCD_TIC32_I2C, Tic32Buf, 2);
+	I2C_SendDataWithoutStop(LCD_TIC32_I2C, Tic32Buf, 2);
 	// temperature coefficient: 0
 	Tic32Buf[0] = LCD_TIC32_CON1;
 	Tic32Buf[1] = 0b00100000;
-	I2C_SendData(LCD_TIC32_I2C, Tic32Buf, 2);
+	I2C_SendDataWithoutStop(LCD_TIC32_I2C, Tic32Buf, 2);
 
 	//Остановиться имеет смысл пожалуй лишь на напряжении Vlcd.
 	//Если установить слишком малое напряжение – пиксели будут плохо видны.
@@ -119,12 +119,11 @@ void Lcd_TIC32_Init(void){
 	// Vlcd - LOW; Voltage multiplier ON
 	Tic32Buf[0] = LCD_TIC32_CON1;
 	Tic32Buf[1] = 0b00000101;
-	I2C_SendData(LCD_TIC32_I2C, Tic32Buf, 2);
+	I2C_SendDataWithoutStop(LCD_TIC32_I2C, Tic32Buf, 2);
 	// Vlcd set
 	Tic32Buf[0] = LCD_TIC32_CON1;
 	Tic32Buf[1] = (1 << 7) | LCD_TIC32_Vlcd;
-	I2C_SendData(LCD_TIC32_I2C, Tic32Buf, 2);
-
+	I2C_SendDataWithoutStop(LCD_TIC32_I2C, Tic32Buf, 2);
 	I2C_Stop(LCD_TIC32_I2C);
 }
 //************************************************************
@@ -134,12 +133,11 @@ void Lcd_TIC32_ClearRAM(void){
 	I2C_StartAndSendDeviceAddr(LCD_TIC32_I2C, LCD_TIC32_ADDR);
 
 	Tic32Buf[0] = LCD_TIC32_CON2;
-	I2C_SendData(LCD_TIC32_I2C, Tic32Buf, 1);
-
+	I2C_SendDataWithoutStop(LCD_TIC32_I2C, Tic32Buf, 1);
 	for(uint16_t cnt = 0; cnt < 640; cnt++)
 		{
 			Tic32Buf[0] = 0;
-			I2C_SendData(LCD_TIC32_I2C, Tic32Buf, 1);
+			I2C_SendDataWithoutStop(LCD_TIC32_I2C, Tic32Buf, 1);
 		}
 
 	I2C_Stop(LCD_TIC32_I2C);
@@ -152,33 +150,32 @@ void Lcd_TIC32_SendData(uint8_t *pBuf){
 	// на основн стр
 	Tic32Buf[0] = LCD_TIC32_CON1;
 	Tic32Buf[1] = 0x01;
-	I2C_SendData(LCD_TIC32_I2C, Tic32Buf, 2);
+	I2C_SendDataWithoutStop(LCD_TIC32_I2C, Tic32Buf, 2);
 	// set Y-адрес
 	Tic32Buf[0] = LCD_TIC32_CON1;
 	Tic32Buf[1] = 0b01000000;
-	I2C_SendData(LCD_TIC32_I2C, Tic32Buf, 2);
+	I2C_SendDataWithoutStop(LCD_TIC32_I2C, Tic32Buf, 2);
 	// set X-адрес
 	Tic32Buf[0] = LCD_TIC32_CON1;
 	Tic32Buf[1] = 0b10000000;
-	I2C_SendData(LCD_TIC32_I2C, Tic32Buf, 2);
-
+	I2C_SendDataWithoutStop(LCD_TIC32_I2C, Tic32Buf, 2);
 	I2C_Stop(LCD_TIC32_I2C);
 	//------------------
 	I2C_StartAndSendDeviceAddr(LCD_TIC32_I2C, LCD_TIC32_ADDR);
 
 	Tic32Buf[0] = LCD_TIC32_CON2;
-	I2C_SendData(LCD_TIC32_I2C, Tic32Buf, 1);
+	I2C_SendDataWithoutStop(LCD_TIC32_I2C, Tic32Buf, 1);
 
 	for(uint16_t cnt = 0; cnt < 640; cnt++)
 		{
 			if (cnt < 512)
 				{
-					I2C_SendData(LCD_TIC32_I2C, (pBuf + cnt), 1);
+					I2C_SendDataWithoutStop(LCD_TIC32_I2C, (pBuf + cnt), 1);
 				}
 			else
 				{
 					Tic32Buf[0] = 0;
-					I2C_SendData(LCD_TIC32_I2C, Tic32Buf, 1);
+					I2C_SendDataWithoutStop(LCD_TIC32_I2C, Tic32Buf, 1);
 				}
 		}
 	I2C_Stop(LCD_TIC32_I2C);

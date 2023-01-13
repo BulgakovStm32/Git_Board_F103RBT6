@@ -1,26 +1,14 @@
 
-/*
- * LM6063D.c
- *
- *  Created on:
- *      Author:
- */
 #include "LM6063D.h"
-//*******************************************************************************************
-//*******************************************************************************************
-
-
-
-//*******************************************************************************************
-//*******************************************************************************************
-//*******************************************************************************************
-//*******************************************************************************************
+  
+//extern SPI_HandleTypeDef hspi2;
+//-----------------------------------------------------------------------------
 static void Lm6063LcdPause(uint16_t pause){
 
   while(pause != 0) {--pause;}
 }
-//**********************************************************
-static void _lcd_lm6063_GpioInit(void){
+//-----------------------------------------------------------------------------
+static void Lm6063LcdGpioInit(void){
   
 	//Включаем тактирование порта
 	RCC->APB2ENR |= (RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN);
@@ -40,80 +28,75 @@ static void _lcd_lm6063_GpioInit(void){
 	Lm6063LcdResHight();
 	Lm6063LcdCsHight();
 }	
-//**********************************************************
-//Передача байта в дисплей..
-static void _lcd_lm6063_SendByte(uint8_t byte, uint8_t cmd){
-
-//	Lm6063LcdCsLow();   //Enable display controller (active low)
-//	Lm6063LcdPause(50); //Пауза что бы дисплей успел перейти в активный режим
-
-	if(cmd == LM6063_DATA) Lm6063LcdA1Hight();//данные.
-	else    			   Lm6063LcdA1Low();  //команда.
-	SPI_TxByte(LM6063_SPI, byte);
-
-//	Lm6063LcdCsHight(); //Disable display controller
+//-----------------------------------------------------------------------------
+//Передача байта в дисплей.
+static void Lm6063LcdSendByte(uint8_t byte, uint8_t cmd){
+  
+  Lm6063LcdCsLow();          //Enable display controller (active low)
+  if(cmd) Lm6063LcdA1Hight();//данные.
+  else    Lm6063LcdA1Low();  //команда.
+	
+  SPI_TxRxByte(LM6063_SPI, byte);
+  //Spi2TxRxByte(byte);      //
+  //HAL_SPI_Transmit(&hspi2, &byte, 1, 10);
+  
+  Lm6063LcdCsHight();        //Disable display controller
 }
-//*******************************************************************************************
-//*******************************************************************************************
-//*******************************************************************************************
-//*******************************************************************************************
+//-----------------------------------------------------------------------------
 //инициализация SPI и дисплея
-void LCD_LM6063_Init(void){
+void Lm6063LcdInit(void){
   
 	SPI_Init(LM6063_SPI);
-	_lcd_lm6063_GpioInit();
-	//--------------------
-	//Сброс дисплея.
+	Lm6063LcdGpioInit();
+	
+//	msDelay(5);//delay_ms(1);
+	
+	//дернули ресет
+	//  Lm6063LcdResHight;
+	//	Lm6063LcdPause(10);
+
 	Lm6063LcdResLow();
 	Lm6063LcdPause(50);
+
 	Lm6063LcdResHight();
 	Lm6063LcdPause(50);
-
-
-	//Enable display controller (active low)
-	Lm6063LcdCsLow();
-	//--------------------
-	//
-	_lcd_lm6063_SendByte(0xaf, LM6063_CMD);	//Display OFF
-	_lcd_lm6063_SendByte(0x40, LM6063_CMD);
+	
+	Lm6063LcdSendByte(0xaf, LM6063_CMD);	//Display OFF
+	Lm6063LcdSendByte(0x40, LM6063_CMD);
 	//--------------------
 	//ADC select
 	//Sets the display RAM address SEG output correspondence
-	_lcd_lm6063_SendByte(0xa0, LM6063_CMD);//normal
+	Lm6063LcdSendByte(0xa0, LM6063_CMD);//normal
 	//Lm6063LcdSendByte(0xa1, LM6063_CMD);//reverse 
 	//--------------------
 	//
-	_lcd_lm6063_SendByte(0xa6, LM6063_CMD);
-	_lcd_lm6063_SendByte(0xa4, LM6063_CMD);
-	_lcd_lm6063_SendByte(0xa2, LM6063_CMD);
+	Lm6063LcdSendByte(0xa6, LM6063_CMD);
+	Lm6063LcdSendByte(0xa4, LM6063_CMD);
+	Lm6063LcdSendByte(0xa2, LM6063_CMD);
 	
 	//--------------------
 	//Common Output Mode Select
 	//Lm6063LcdSendByte(0xc0, LM6063_CMD);//Normal
-	_lcd_lm6063_SendByte(0xc8, LM6063_CMD);//Reverse
+	Lm6063LcdSendByte(0xc8, LM6063_CMD);//Reverse
 	//--------------------
-	//
-	_lcd_lm6063_SendByte(0x2f, LM6063_CMD);
-	_lcd_lm6063_SendByte(0x25, LM6063_CMD);
-	_lcd_lm6063_SendByte(0xf8, LM6063_CMD);
+
+	Lm6063LcdSendByte(0x2f, LM6063_CMD);
+	Lm6063LcdSendByte(0x25, LM6063_CMD);
+	Lm6063LcdSendByte(0xf8, LM6063_CMD);
 	
-	_lcd_lm6063_SendByte(0x00, LM6063_CMD);
-	//_lcd_lm6063_SendByte(0x01, LM6063_CMD);
+	Lm6063LcdSendByte(0x00, LM6063_CMD);
+	//Lm6063LcdSendByte(0x01, LM6063_CMD);
 	//--------------------
 	//Контрастность - Electronic volume mode set
-	_lcd_lm6063_SendByte(0x81, LM6063_CMD);//Команда
-	_lcd_lm6063_SendByte(0x22, LM6063_CMD);//Значение
+	Lm6063LcdSendByte(0x81, LM6063_CMD);//Команда
+	Lm6063LcdSendByte(0x22, LM6063_CMD);//Значение
 	
 	//--------------------	
-	_lcd_lm6063_SendByte(0xaf, LM6063_CMD);
-
-
-	//Disable display controller
-	Lm6063LcdCsHight();
+	Lm6063LcdSendByte(0xaf, LM6063_CMD);
 }
-//**********************************************************
+//-----------------------------------------------------------------------------
 //Copies the LCD cache into the device RAM
-void LCD_LM6063_Update(uint8_t *displayBuf){
+void Lm6063LcdUpdate(uint8_t *displayBuf){
   
 //  uint8_t  i, j;
 //  //--------------------
@@ -130,20 +113,20 @@ void LCD_LM6063_Update(uint8_t *displayBuf){
 //    }
 
 
-	//Передача данных для дисплея, за раз передается 128 байта(~1.5мС)
+	//Передача данных для дисплея за раз передется 128 байта(~1.5мС)
 	static uint32_t count    = 0;
 	static uint32_t bufIndex = 0;
+	uint32_t j;
 	//--------------------
-	Lm6063LcdCsLow(); //Enable display controller (active low)
+	if(count == 0) Lm6063LcdSendByte(0x40, LM6063_CMD);	//Set Display Start Line = com0
 
-	if(count == 0) _lcd_lm6063_SendByte(0x40, LM6063_CMD);//Set Display Start Line = com0
-	_lcd_lm6063_SendByte(0xB0|count, LM6063_CMD); 		  //Set Page Address as ComTable
-	_lcd_lm6063_SendByte(0x10	   , LM6063_CMD); 		  //Set Column Address = 0
-	_lcd_lm6063_SendByte(0x04      , LM6063_CMD); 		  //Colum from 4 -> 132 auto add
-	for(uint32_t i = 0; i < 128; i++)
+	Lm6063LcdSendByte(0xB0|count, LM6063_CMD); //Set Page Address as ComTable
+	Lm6063LcdSendByte(0x10,   	  LM6063_CMD); //Set Column Address = 0
+	Lm6063LcdSendByte(0x04,   	  LM6063_CMD); //Colum from 4 -> 132 auto add
+	for(j = 0; j < 128; j++)
 	{
-		_lcd_lm6063_SendByte(*(displayBuf + bufIndex), LM6063_DATA);
-		bufIndex++;
+	  Lm6063LcdSendByte(*(displayBuf+bufIndex), LM6063_DATA);
+	  bufIndex++;
 	}
 
 	if(++count >= 8)
@@ -151,13 +134,8 @@ void LCD_LM6063_Update(uint8_t *displayBuf){
 		count    = 0;
 		bufIndex = 0;
 	}
-
-	Lm6063LcdCsHight(); //Disable display controller
 }
-//*******************************************************************************************
-//*******************************************************************************************
-//*******************************************************************************************
-//*******************************************************************************************
+//-----------------------------------------------------------------------------
 
 
 

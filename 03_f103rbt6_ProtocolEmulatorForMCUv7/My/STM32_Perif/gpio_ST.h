@@ -1,91 +1,137 @@
 
+/*
+ * 	adcST.h
+ *
+ *  Created on:
+ *      Author: belyaev
+ */
+
 #ifndef _gpio_ST_H
 #define _gpio_ST_H
-//-----------------------------------------------------------------------------
-
+//*******************************************************************************************
+//*******************************************************************************************
 //#include "stm32f10x.h"
-//#include  "stm32f103xb.h"
+//#include "stm32f103xb.h"
 
 #include "main.h"
 
-//-----------------------------------------------------------------------------
-#define LedPC13On()     (GPIOC->BSRR = GPIO_BSRR_BS13)
-#define LedPC13Off()    (GPIOC->BSRR = GPIO_BSRR_BR13)
-#define LedPC13Toggel() (GPIOC->ODR ^= GPIO_ODR_ODR13)
+//*******************************************************************************************
+//*******************************************************************************************
+#define GPIO_POLLING_DELAY  10 //50
 
-#define LedPA6_On()     	(GPIOA->BSRR = GPIO_BSRR_BS6)
-#define LedPA6_Off()    	(GPIOA->BSRR = GPIO_BSRR_BR6)
-#define LedPA6_Toggel() 	(GPIOA->ODR ^= GPIO_ODR_ODR6)
+#define GPIO_PIN_HIGH		1
+#define GPIO_PIN_LOW		0
 
-#define LedPA7_On()     	(GPIOA->BSRR = GPIO_BSRR_BS7)
-#define LedPA7_Off()    	(GPIOA->BSRR = GPIO_BSRR_BR7)
-#define LedPA7_Toggel() 	(GPIOA->ODR ^= GPIO_ODR_ODR7)
+//************************************
+//// MCU_EN - PB2
+//#define MCU_EN_GPIO_PORT	GPIOB
+//#define MCU_EN_GPIO_PIN		2
+//#define MCU_POWER_ON()	   	(MCU_EN_GPIO_PORT->BSRR = GPIO_BSRR_BS2)
+//#define MCU_POWER_OFF()    	(MCU_EN_GPIO_PORT->BSRR = GPIO_BSRR_BR2)
+//#define MCU_EN_Toggel() 	(MCU_EN_GPIO_PORT->ODR ^= GPIO_ODR_ODR2)
+//// LED_ACT - PA15
+//#define LED_ACT_GPIO_PORT	GPIOA
+//#define LED_ACT_GPIO_PIN	15
+//#define LED_ACT_High()   	(LED_ACT_GPIO_PORT->BSRR = GPIO_BSRR_BS15)
+//#define LED_ACT_Low()    	(LED_ACT_GPIO_PORT->BSRR = GPIO_BSRR_BR15)
+//#define LED_ACT_Toggel() 	(LED_ACT_GPIO_PORT->ODR ^= GPIO_ODR_ODR15)
+//// GPS_EN - PB13
+//#define GPS_EN_High()   	(GPIOB->BSRR = GPIO_BSRR_BS13)
+//#define GPS_EN_Low()    	(GPIOB->BSRR = GPIO_BSRR_BR13)
+//#define GPS_EN_Toggel() 	(GPIOB->ODR ^= GPIO_ODR_ODR13)
+//// LIDAR_EN - PB5
+//#define LIDAR_EN_High()   	(GPIOB->BSRR = GPIO_BSRR_BS5)
+//#define LIDAR_EN_Low()    	(GPIOB->BSRR = GPIO_BSRR_BR5)
+//#define LIDAR_EN_Toggel() 	(GPIOB->ODR ^= GPIO_ODR_ODR5)
+//// BB_PWR_BTN - PA8
+//#define BB_PWR_BTN_High()   (GPIOA->BSRR = GPIO_BSRR_BS8)
+//#define BB_PWR_BTN_Low()    (GPIOA->BSRR = GPIO_BSRR_BR8)
+//#define BB_PWR_BTN_Toggel() (GPIOA->ODR ^= GPIO_ODR_ODR8)
+//// FAN_EN - PB12
+//#define FAN_EN_High()   	(GPIOB->BSRR = GPIO_BSRR_BS12)
+//#define FAN_EN_Low()    	(GPIOB->BSRR = GPIO_BSRR_BR12)
+//#define FAN_EN_Toggel() 	(GPIOB->ODR ^= GPIO_ODR_ODR12)
+//// PWR_BTN_LED - PB9
+//#define PWR_BTN_LED_High()   (GPIOB->BSRR = GPIO_BSRR_BS9)
+//#define PWR_BTN_LED_Low()    (GPIOB->BSRR = GPIO_BSRR_BR9)
+//#define PWR_BTN_LED_Toggel() (GPIOB->ODR ^= GPIO_ODR_ODR9)
+//// LAMP_PWM - PB1
+//#define LAMP_PWM_High()   	(GPIOB->BSRR = GPIO_BSRR_BS1)
+//#define LAMP_PWM_Low()   	(GPIOB->BSRR = GPIO_BSRR_BR1)
+//#define LAMP_PWM_Toggel() 	(GPIOB->ODR ^= GPIO_ODR_ODR1)
+////************************************
+//// Линия упраяления драйвером мотора DRV8825
+//// DRV_MODE2 - PC13
+//#define DRV_MODE2_High()   	(GPIOC->BSRR = GPIO_BSRR_BS13)
+//#define DRV_MODE2_Low()    	(GPIOC->BSRR = GPIO_BSRR_BR13)
+//#define DRV_MODE2_Toggel() 	(GPIOC->ODR ^= GPIO_ODR_ODR13)
+//// DRV_MODE1 - PC14
+//#define DRV_MODE1_High()   	(GPIOC->BSRR = GPIO_BSRR_BS14)
+//#define DRV_MODE1_Low()    	(GPIOC->BSRR = GPIO_BSRR_BR14)
+//#define DRV_MODE1_Toggel() 	(GPIOC->ODR ^= GPIO_ODR_ODR14)
+//// DRV_MODE0 - PC15
+//#define DRV_MODE0_High()   	(GPIOC->BSRR = GPIO_BSRR_BS15)
+//#define DRV_MODE0_Low()    	(GPIOC->BSRR = GPIO_BSRR_BR15)
+//#define DRV_MODE0_Toggel() 	(GPIOC->ODR ^= GPIO_ODR_ODR15)
+//// DRV_STEP - PA0
+//#define DRV_STEP_GPIO_PORT	GPIOA
+//#define DRV_STEP_GPIO_PIN	0
+//#define DRV_STEP_High()   	(GPIOA->BSRR = GPIO_BSRR_BS0)
+//#define DRV_STEP_Low()    	(GPIOA->BSRR = GPIO_BSRR_BR0)
+//#define DRV_STEP_Toggel() 	(GPIOA->ODR ^= GPIO_ODR_ODR0)
+//// /DRV_EN - PA1
+//#define DRV_EN_GPIO_PORT	GPIOA
+//#define DRV_EN_GPIO_PIN		1
+//#define DRV_EN_High()   	(GPIOA->BSRR = GPIO_BSRR_BS1)
+//#define DRV_EN_Low()    	(GPIOA->BSRR = GPIO_BSRR_BR1)
+//#define DRV_EN_Toggel() 	(GPIOA->ODR ^= GPIO_ODR_ODR1)
+//// DRV_DIR - PA4
+//#define DRV_DIR_GPIO_PORT	GPIOA
+//#define DRV_DIR_GPIO_PIN	4
+//#define DRV_DIR_High()   	(GPIOA->BSRR = GPIO_BSRR_BS4)
+//#define DRV_DIR_Low()    	(GPIOA->BSRR = GPIO_BSRR_BR4)
+//#define DRV_DIR_Toggel() 	(GPIOA->ODR ^= GPIO_ODR_ODR4)
+//// /DRV_RESET - PA7
+//#define DRV_RESET_GPIO_PORT	GPIOA
+//#define DRV_RESET_GPIO_PIN	7
+//#define DRV_RESET_High()   	(GPIOA->BSRR = GPIO_BSRR_BS7)
+//#define DRV_RESET_Low()    	(GPIOA->BSRR = GPIO_BSRR_BR7)
+//#define DRV_RESET_Toggel() 	(GPIOA->ODR ^= GPIO_ODR_ODR7)
+//************************************
+// Макросы
+#define GPIO_PIN_High(gpio, pin) 	(gpio->BSRR = (0x00001<<pin))
+#define GPIO_PIN_Low(gpio, pin)  	(gpio->BSRR = (0x10000<<pin))
+#define GPIO_PIN_Toggel(gpio, pin)	(gpio->ODR ^= (0x00001<<pin))
 
-#define Gpio_mSConst   10//50//10
+//************************************
+//#define LedPC13On()     (GPIOC->BSRR = GPIO_BSRR_BS13)
+//#define LedPC13Off()    (GPIOC->BSRR = GPIO_BSRR_BR13)
+//#define LedPC13Toggel() (GPIOC->ODR ^= GPIO_ODR_ODR13)
 
-#define GpioAIDR       1
-#define GpioBIDR       2
-#define GpioCIDR       3 
-//------------------------------
-//Имитация гапряжения питания БигБорда - PB14
-#define BigBoardPwr_GPIO		GPIOB
-#define BigBoardPwr_PIN			0
+//#define LedPA6_On()     	(GPIOA->BSRR = GPIO_BSRR_BS6)
+//#define LedPA6_Off()    	(GPIOA->BSRR = GPIO_BSRR_BR6)
+//#define LedPA6_Toggel() 	(GPIOA->ODR ^= GPIO_ODR_ODR6)
 
-#define BigBoardPwr_On()     	(BigBoardPwr_GPIO->BSRR = GPIO_BSRR_BS0)
-#define BigBoardPwr_Off()    	(BigBoardPwr_GPIO->BSRR = GPIO_BSRR_BR0)
-#define BigBoardPwr_Toggel() 	(BigBoardPwr_GPIO->ODR ^= GPIO_ODR_ODR0)
+//#define LedPA7_On()     	(GPIOA->BSRR = GPIO_BSRR_BS7)
+//#define LedPA7_Off()    	(GPIOA->BSRR = GPIO_BSRR_BR7)
+//#define LedPA7_Toggel() 	(GPIOA->ODR ^= GPIO_ODR_ODR7)
 
-////JQ6500/
-//#define JqK1Hight     (GPIOC->BSRR = GPIO_BSRR_BS9)
-//#define JqK1Low    	  (GPIOC->BSRR = GPIO_BSRR_BR9)
-//
-//#define JqK2Hight     (GPIOA->BSRR = GPIO_BSRR_BS8)
-//#define JqK2Low    	  (GPIOA->BSRR = GPIO_BSRR_BR8)
-////Двухцветный светодио LC1_SOST. PB1 - LC1_SOST_Red. PB2 - LC1_SOST_Green.
-//#define LC1SostRedLedOn()     	(GPIOB->BSRR = GPIO_BSRR_BS1)
-//#define LC1SostRedLedOff()    	(GPIOB->BSRR = GPIO_BSRR_BR1)
-//#define LC1SostRedLedToggel() 	(GPIOB->ODR  = GPIOB->ODR ^ GPIO_ODR_ODR1)
-//
-//#define LC1SostGreenLedOn()     (GPIOB->BSRR = GPIO_BSRR_BS2)
-//#define LC1SostGreenLedOff()    (GPIOB->BSRR = GPIO_BSRR_BR2)
-//#define LC1SostGreenLedToggel() (GPIOB->ODR  = GPIOB->ODR ^ GPIO_ODR_ODR2)
-//
-////Двухцветный светодио LC2_SOST. PA2 - LC2_SOST_Red. PB0 - LC2_SOST_Green.
-//#define LC2SostRedLedOn()     	(GPIOA->BSRR = GPIO_BSRR_BS7)
-//#define LC2SostRedLedOff()    	(GPIOA->BSRR = GPIO_BSRR_BR7)
-//#define LC2SostRedLedToggel() 	(GPIOA->ODR  = GPIOA->ODR ^ GPIO_ODR_ODR7)
-//
-//#define LC2SostGreenLedOn()     (GPIOB->BSRR = GPIO_BSRR_BS0)
-//#define LC2SostGreenLedOff()    (GPIOB->BSRR = GPIO_BSRR_BR0)
-//#define LC2SostGreenLedToggel() (GPIOB->ODR  = GPIOB->ODR ^ GPIO_ODR_ODR0)
- 
-//Оптореле LC. 
-//PC10 - OptSP2Att.
-//PC11 - OptSP2Line.
-//PC12 - OptSP1Line.
-//PD2  - OptSP1Att.
-#define OptSP1AttOn()     (GPIOD->BSRR = GPIO_BSRR_BS2)
-#define OptSP1AttOff()    (GPIOD->BSRR = GPIO_BSRR_BR2)
-#define OptSP1AttToggel() (GPIOD->ODR  = (GPIOD->ODR ^ GPIO_ODR_ODR2))
+//*******************************************************************************************
+//*******************************************************************************************
+void STM32_GPIO_InitForOutputPushPull(GPIO_TypeDef *port, uint32_t pin);
+void STM32_GPIO_InitForOutputOpenDrain(GPIO_TypeDef *port, uint32_t pin);
+void STM32_GPIO_InitForInputPullUp(GPIO_TypeDef *port, uint32_t pin);
+void STM32_GPIO_InitForInputPullDown(GPIO_TypeDef *port, uint32_t pin);
+void STM32_GPIO_InitForFloatingInput(GPIO_TypeDef *port, uint32_t pin);
+void STM32_GPIO_InitForAnalogInput(GPIO_TypeDef *port, uint32_t pin);
 
-#define OptSP1LineOn()     (GPIOC->BSRR = GPIO_BSRR_BS12)
-#define OptSP1LineOff()    (GPIOC->BSRR = GPIO_BSRR_BR12)
-#define OptSP1LineToggel() (GPIOC->ODR  = (GPIOC->ODR ^ GPIO_ODR_ODR12))
+void     STM32_GPIO_Init     (void);
+void     STM32_GPIO_CheckLoop(void);
+uint32_t STM32_GPIO_GetPortState(GPIO_TypeDef *port);
+uint32_t STM32_GPIO_GetPinState(GPIO_TypeDef *port, uint32_t pin);
 
-#define OptSP2LineOn()     (GPIOC->BSRR = GPIO_BSRR_BS11)
-#define OptSP2LineOff()    (GPIOC->BSRR = GPIO_BSRR_BR11)
-#define OptSP2LineToggel() (GPIOC->ODR  = (GPIOC->ODR ^ GPIO_ODR_ODR11))
-
-#define OptSP2AttOn()      (GPIOC->BSRR = GPIO_BSRR_BS10) 
-#define OptSP2AttOff()     (GPIOC->BSRR = GPIO_BSRR_BR10) 
-#define OptSP2AttToggel()  (GPIOC->ODR  = (GPIOC->ODR ^ GPIO_ODR_ODR10))
-
-//#define OptSPAllOff      (GPIOB->ODR  = (GPIOB->ODR & ~( GPIO_ODR_ODR3 | GPIO_ODR_ODR4 | GPIO_ODR_ODR5 | GPIO_ODR_ODR6 )))                                           
-//-----------------------------------------------------------------------------
-void     Gpio_Init     (void);
-void     Gpio_CheckLoop(void);
-uint16_t Gpio_GetState (uint8_t port);
-//-----------------------------------------------------------------------------
+//*******************************************************************************************
+//*******************************************************************************************
 #endif /*_gpio_ST_H*/
 
 

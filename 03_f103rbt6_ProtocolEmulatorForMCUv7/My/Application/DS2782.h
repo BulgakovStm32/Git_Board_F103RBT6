@@ -15,9 +15,23 @@
 //*******************************************************************************************
 //*******************************************************************************************
 
-#define DS2782_ADDR (0x34 << 1)
-#define DS2782_I2C	I2C1
+#define DS2782_ADDR 			(0x34 << 1)
+#define DS2782_I2C				I2C1
 
+
+#define DS2782_ADC_RES_mV				4.88	//Разрешение АЦП в мВ
+#define DS2782_ADC_RES_SCALE			100
+#define DS2782_ADC_RES					(uint32_t)(DS2782_ADC_RES_mV * DS2782_ADC_RES_SCALE) //это 4,88mV * 128. Это нужно чтобы избавится от запятой => получили микровольты
+
+#define DS2782_DIVIDER_HIGH_RES			1620000	//Сопротивление верхнего резистора делителя, в Омах
+#define DS2782_DIVIDER_LOW_RES			360000	//Сопротивление нижнего резистора делителя, в Омах
+#define DS2782_DIVISION_FACTOR  		(float)((DS2782_DIVIDER_HIGH_RES / DS2782_DIVIDER_LOW_RES) + 1)//коэффициент деления делителя
+#define DS2782_DIVISION_FACTOR_SCALE	1000
+#define DS2782_DIVISION					(uint32_t)(DS2782_DIVISION_FACTOR * DS2782_DIVISION_FACTOR_SCALE)
+
+#define DS2782_ADC_SCALE				(uint32_t)(DS2782_ADC_RES_SCALE * DS2782_DIVISION_FACTOR_SCALE)
+
+//#define DS2782_VOLTAGE_K		(DS2782_ADC_RES_mV * DS2782_DIVISION_FACTOR * DS2782_VOLTAGE_SCALE)
 //************************************************************
 typedef enum{
 	// Name                              Acc.   Size  Description
@@ -80,13 +94,11 @@ typedef struct{
 	uint32_t Voltage;
 	int16_t  Current;
 	int16_t  AverageCurrent;
-	uint16_t AccumulatedCurrent;
+	uint32_t AccumulatedCurrent;
 }DS2782_t;
 //*******************************************************************************************
 //*******************************************************************************************
 void     DS2782_Init(I2C_TypeDef *i2c, uint32_t i2cRemap);
-uint16_t DS2782_ReadData(DS2782_Registers_t addrReg, uint8_t len);
-
 void     DS2782_GetI2cAddress(DS2782_t *ds);
 void 	 DS2782_GetID(DS2782_t *ds);
 void 	 DS2782_GetTemperature(DS2782_t *ds);

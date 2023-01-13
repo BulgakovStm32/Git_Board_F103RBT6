@@ -88,33 +88,6 @@ int32_t map_I32(int32_t value, int32_t in_min, int32_t in_max, int32_t out_min, 
  */
 void Lcd_AnalogScale(uint32_t angle){
 
-//	uint8_t markRadius = 95;// Радиус шкалы.
-//	int8_t  x0 =  64;		// Х-координата центра шкалы
-//	int8_t  y0 = -60; 		// У-координата центра шкалы.
-//	//-------------------
-//	//Рисуем риски-метки шкалы
-//	for(float i = 0; i < M_PI; i += M_PI / 14)
-//	{
-//		Lcd_Line(x0 +  markRadius    * cosf(i),	//x1
-//				 y0 +  markRadius    * sinf(i),	//y1
-//				 x0 + (markRadius-6) * cosf(i), //x2
-//				 y0 + (markRadius-6) * sinf(i), //y2
-//				 PIXEL_ON);
-//	}
-//	//Стрелка.
-//	angle = (180 - angle); 	     	   //Это нужно чтобы стрелка двигалась слева направо.
-//	float rad = angle * (M_PI / 180.0);//перевод углов в радианы
-//	float cos = cosf(rad);
-//	float sin = sinf(rad);
-//	x0 += 1; //небольшое смещение по Х что бы стрелка точно поподала в среднюю риску.
-//	y0 += 5; //небольшое смещение по Y что бы стрелка поподала в риски.
-//	Lcd_Line(x0 + (markRadius) * cos,
-//			 y0 + (markRadius) * sin,
-//			 x0 + 1 * cos,
-//			 y0 + 1 * sin,
-//			 PIXEL_ON);
-
-
 //	const uint8_t markRadius = 95;// Радиус шкалы.
 //	int8_t x0 =  62;//64;		 //Х-координата центра шкалы
 //	int8_t y0 = ANALOG_SCALE_Y0; //Y-координата центра шкалы.
@@ -148,7 +121,6 @@ void Lcd_AnalogScale(uint32_t angle){
 }
 //************************************************************
 //Горизонтальная шкала с рисками.
-
 /*
  * Параметры:
  * x0	: начальная координата шкалы по Х (мин. 0, макс. 127).
@@ -212,7 +184,7 @@ uint32_t Led_Blink(uint32_t millis, uint32_t period, uint32_t switch_on_time){
 	static uint32_t millisOld = 0;
 	static uint32_t flag      = 0;
 	//-------------------
-	if((millis - millisOld) >= (flag ? (period - switch_on_time) : switch_on_time ))
+	if( (millis - millisOld) >= (flag ? (period - switch_on_time) : switch_on_time) )
 	{
 		millisOld = millis;
 		flag = !flag;
@@ -291,11 +263,11 @@ void Task_DS2782(void){
 
 	DS2782_GetI2cAddress(&DS2782); 		//получение адреса на шине I2C
 	//DS2782_GetID(&DS2782);         		//получение Unique ID (factory option)
-//	DS2782_GetTemperature(&DS2782);		//получение температуры.
-// 	DS2782_GetVoltage(&DS2782);    		//получение напряжения на АКБ.
-//	DS2782_GetCurrent(&DS2782);    		//получения тока потребления от АКБ.
-//	DS2782_GetAverageCurrent(&DS2782);	//получения усредненного за 28 сек. тока потребления от АКБ.
-//	DS2782_GetAccumulatedCurrent(&DS2782);
+	DS2782_GetTemperature(&DS2782);		//получение температуры.
+ 	DS2782_GetVoltage(&DS2782);    		//получение напряжения на АКБ.
+	DS2782_GetCurrent(&DS2782);    		//получения тока потребления от АКБ.
+	DS2782_GetAverageCurrent(&DS2782);	//получения усредненного за 28 сек. тока потребления от АКБ.
+	DS2782_GetAccumulatedCurrent(&DS2782);
 }
 //************************************************************
 void Task_DS2782_Display(void){
@@ -308,7 +280,7 @@ void Task_DS2782_Display(void){
 	//Шапка;
 	Lcd_PrintStringAndNumber(1, 1, "_DS2782_", 0, 0);
 	//Вывод времени.
-	Time_Display(14, 1);
+//	Time_Display(14, 1);
 	//----------------------------------------------
 	//По нажатию на кнопку энкодера переход к выбору редактируемого параметра.
 	IncrementOnEachPass(&redaction, ENCODER_GetButton(&Encoder), 1, 1);
@@ -319,10 +291,7 @@ void Task_DS2782_Display(void){
 		ENCODER_IncDecParam(&Encoder, &strIndex, 1, 0, 6);
 		Lcd_PrintStringAndNumber(20, (2 + strIndex), "<=", 0, 0);
 	}
-	else
-	{
-		strIndex = 0;
-	}
+	else strIndex = 0;
 	//----------------------------------------------
 	//Вывод ошибок обvена по I2C.
 	temp = I2C_Master_GetNacCount(DS2782_I2C);
@@ -358,16 +327,15 @@ void Task_DS2782_Display(void){
 	Lcd_SetCursor(1, 6);
 	Lcd_Print("Bat_I   =");
 
-	if(currentTemp < 0)
-	{
-		currentTemp = (currentTemp ^ 0xFFFF) + 1;//Уберем знак.
-		Lcd_Chr('-');
-	}
-	else Lcd_Chr(' ');
-
-	Lcd_BinToDec(currentTemp, 4, LCD_CHAR_SIZE_NORM);
+//	if(currentTemp < 0)
+//	{
+//		currentTemp = -currentTemp;//Уберем знак.
+//		Lcd_Chr('-');
+//	}
+//	else Lcd_Chr(' ');
+//	Lcd_BinToDec(currentTemp, 4, LCD_CHAR_SIZE_NORM);
+	Lcd_BinToDecWithSign(currentTemp, 4, LCD_CHAR_SIZE_NORM);
 	Lcd_Print("mA");
-
 	//----------------------------------------------
 	//Вывод усредненного за 28сек. тока.
 	currentTemp = DS2782.AverageCurrent;
@@ -375,19 +343,19 @@ void Task_DS2782_Display(void){
 	Lcd_SetCursor(1, 7);
 	Lcd_Print("Bat_Iavr=");
 
-	if(currentTemp < 0)
-	{
-		currentTemp = (currentTemp ^ 0xFFFF) + 1;//Уберем знак.
-		Lcd_Chr('-');
-	}
-	else Lcd_Chr(' ');
-
-	Lcd_BinToDec(currentTemp, 4, LCD_CHAR_SIZE_NORM);
+//	if(currentTemp < 0)
+//	{
+//		currentTemp = -currentTemp;//Уберем знак.
+//		Lcd_Chr('-');
+//	}
+//	else Lcd_Chr(' ');
+//	Lcd_BinToDec(currentTemp, 4, LCD_CHAR_SIZE_NORM);
+	Lcd_BinToDecWithSign(currentTemp, 4, LCD_CHAR_SIZE_NORM);
 	Lcd_Print("mA");
 	//----------------------------------------------
 	Lcd_SetCursor(1, 8);
-	Lcd_Print("Bat_Iacc=");
-	Lcd_BinToDec(DS2782.AccumulatedCurrent, 5, LCD_CHAR_SIZE_NORM);
+	Lcd_Print("Bat_Iacc= ");
+	Lcd_BinToDec(DS2782.AccumulatedCurrent, 8, LCD_CHAR_SIZE_NORM);
 	Lcd_Print("uAh");
 }
 //*******************************************************************************************
@@ -414,10 +382,7 @@ void Task_MCUv7DataDisplay(void){
 		ENCODER_IncDecParam(&Encoder, &strIndex, 1, 0, 6);
 		Lcd_PrintStringAndNumber(20, (2 + strIndex), "<=", 0, 0);
 	}
-	else
-	{
-		strIndex = 0;
-	}
+	else strIndex = 0;
 	//----------------------------------------------
 	Lcd_PrintStringAndNumber(18, 3, '\0', strIndex, 2);
 
@@ -504,14 +469,14 @@ void Task_Motor(void){
 	static uint32_t flag = 0;
 	int32_t temp;
 	//-----------------------------
-
+	//Если I2C занят, то выходим.
 	if(PROTOCOL_MASTER_I2C_DMAState() != I2C_DMA_READY) return;
 
 	//Настройки режимов вращения для MCUv7
-	PROTOCOL_MASTER_I2C_SetReducerRate(6);		 //передаточное число редуктора
-	PROTOCOL_MASTER_I2C_SetAccelerationTime(500);//Время ускорения
-	PROTOCOL_MASTER_I2C_SetMaxVelocity(10);		 //Скорость вращения
-	PROTOCOL_MASTER_I2C_MotorTorqueCtrl(1);	     //Включить момент
+	PROTOCOL_MASTER_I2C_SetReducerRate(6);		   //передаточное число редуктора
+	PROTOCOL_MASTER_I2C_SetAccelerationTime(1000); //Время ускорения
+	PROTOCOL_MASTER_I2C_SetMaxVelocity(10);		   //Скорость вращения
+	PROTOCOL_MASTER_I2C_MotorTorqueCtrl(1);	       //Включить момент
 
 	//На какой угол повернуться.
 	if(flag) temp = -60; //угол поворота, в градусах.
@@ -529,22 +494,25 @@ void Task_DisplayPageSelect(void){
 	//-----------------------------
 	TIME_Calculation(&Time, PROTOCOL_MASTER_I2C_GetDataMCU()->msCount);//RTOS_GetTickCount());
 
+//	if(Blink_SwitchOnTime(500, 5)) LedPC13On();
+//	else						   LedPC13Off();
+
 	//Если на какой-то странице производится редактирование то выбор страницы запрешен
-	if(!redaction) ENCODER_IncDecParam(&Encoder, &pageIndex, 1, 0, 3);//Выбор сраницы
+	if(!redaction) ENCODER_IncDecParam(&Encoder, &pageIndex, 1, 0, 2);//Выбор сраницы
 	switch(pageIndex){
 		//--------------------
 		case 0:
-			//RTOS_SetTask(PROTOCOL_MASTER_I2C_RequestToMCU, 1, 0);
+			RTOS_SetTask(PROTOCOL_MASTER_I2C_RequestToMCU, 1, 0);
 			RTOS_SetTask(Task_MCUv7DataDisplay, 2, 0);
 		break;
 		//--------------------
 		case 1:
-			RTOS_SetTask(Task_AnalogMeter, 2, 0);
+			RTOS_SetTask(Task_DS2782,	  	  0, 0);
+			RTOS_SetTask(Task_DS2782_Display, 3, 0);
 		break;
 		//--------------------
 		case 2:
-			//RTOS_SetTask(Task_DS2782,	  	  1, 0);
-			RTOS_SetTask(Task_DS2782_Display, 2, 0);
+			RTOS_SetTask(Task_AnalogMeter, 2, 0);
 		break;
 		//--------------------
 		default:
@@ -554,10 +522,10 @@ void Task_DisplayPageSelect(void){
 		break;
 		//--------------------
 	}
-	RTOS_SetTask(PROTOCOL_MASTER_I2C_RequestToMCU, 1, 0);
+	//RTOS_SetTask(PROTOCOL_MASTER_I2C_RequestToMCU, 1, 0);
 	//Проверка состяния системного регистра SystemCtrlReg
-	if(PROTOCOL_MASTER_I2C_GetDataMCU()->SysCtrlReg.f_PwrOff) BigBoardPwr_Off();
-	else 									  				  BigBoardPwr_On();
+	if(PROTOCOL_MASTER_I2C_GetDataMCU()->SysCtrlReg.f_PwrOff) BIG_BOARD_PWR_Off();
+	else 									  				  BIG_BOARD_PWR_On();
 }
 //************************************************************
 //void Task_LcdUpdate(void){
@@ -575,7 +543,7 @@ int main(void){
 	//***********************************************
 	//Drivers.
 	Sys_Init();
-	Gpio_Init();
+	GPIO_MCU_Init();
 	DELAY_Init();
 	USART_Init(USART1, USART1_BRR);
 	DELAY_milliS(250);//Эта задержка нужна для стабилизации напряжения патания.
@@ -585,7 +553,7 @@ int main(void){
 	Config_Init();
 	//***********************************************
 	//Ини-я DS2782.
-	//DS2782_Init(DS2782_I2C, I2C_GPIO_NOREMAP);
+//	DS2782_Init(DS2782_I2C, I2C_GPIO_NOREMAP);
 	//***********************************************
 	//Инициализация графического дисплея LM6063D.
 	Lcd_Init();
@@ -611,8 +579,8 @@ int main(void){
 	RTOS_SetTask(Lcd_Update,      0,    5);//Обновление дисплея каждые 5мс
 	RTOS_SetTask(Config_SaveLoop, 0, 1000);//Проверка и сохранение конфигурации каждую 1 сек.
 
-	RTOS_SetTask(Task_DisplayPageSelect, 0,    5);
-	RTOS_SetTask(Task_Motor,     	   500, 2000);
+	RTOS_SetTask(Task_DisplayPageSelect, 0,   20);
+//	RTOS_SetTask(Task_Motor,     	   500, 2500);
 
 	SysTick_Init();
 	__enable_irq();
