@@ -268,6 +268,7 @@ void Task_DS2782(void){
 	DS2782_GetCurrent(&DS2782);    		//получения тока потребления от АКБ.
 	DS2782_GetAverageCurrent(&DS2782);	//получения усредненного за 28 сек. тока потребления от АКБ.
 	DS2782_GetAccumulatedCurrent(&DS2782);
+	DS2782_GetACRL(&DS2782);
 }
 //************************************************************
 void Task_DS2782_Display(void){
@@ -298,13 +299,13 @@ void Task_DS2782_Display(void){
 	Lcd_PrintStringAndNumber(1, 2, "I2cNac :", temp, 4);
 
 	//Вывод адреса на шине I2C
-	Lcd_SetCursor(1, 3);
-	Lcd_Print("I2cAddr:");
-	Lcd_Print("0x");
-	Lcd_u8ToHex(DS2782.I2C_Address);
+//	Lcd_SetCursor(1, 3);
+//	Lcd_Print("I2cAddr:");
+//	Lcd_Print("0x");
+//	Lcd_u8ToHex(DS2782.I2C_Address);
 
 	//Вывод температуры.
-	Lcd_SetCursor(1, 4);
+	Lcd_SetCursor(1, 3);
 	Lcd_Print("Bat_T   = ");
 	temp = DS2782.Temperature;
 	Lcd_BinToDec(temp/10, 2, LCD_CHAR_SIZE_NORM);
@@ -313,7 +314,7 @@ void Task_DS2782_Display(void){
 	Lcd_Print(" C");
 
 	//Вывод напряжения на АКБ.
-	Lcd_SetCursor(1, 5);
+	Lcd_SetCursor(1, 4);
 	Lcd_Print("Bat_U   = ");
 	temp = DS2782.Voltage;
 	Lcd_BinToDec(temp/100, 2, LCD_CHAR_SIZE_NORM);
@@ -324,7 +325,7 @@ void Task_DS2782_Display(void){
 	//Вывод тока потребления от АКБ.
 	int16_t currentTemp = DS2782.Current;
 
-	Lcd_SetCursor(1, 6);
+	Lcd_SetCursor(1, 5);
 	Lcd_Print("Bat_I   =");
 
 //	if(currentTemp < 0)
@@ -334,13 +335,13 @@ void Task_DS2782_Display(void){
 //	}
 //	else Lcd_Chr(' ');
 //	Lcd_BinToDec(currentTemp, 4, LCD_CHAR_SIZE_NORM);
-	Lcd_BinToDecWithSign(currentTemp, 4, LCD_CHAR_SIZE_NORM);
-	Lcd_Print("mA");
+	Lcd_BinToDecWithSign(currentTemp, 8, LCD_CHAR_SIZE_NORM);
+	Lcd_Print("uA");
 	//----------------------------------------------
 	//Вывод усредненного за 28сек. тока.
 	currentTemp = DS2782.AverageCurrent;
 
-	Lcd_SetCursor(1, 7);
+	Lcd_SetCursor(1, 6);
 	Lcd_Print("Bat_Iavr=");
 
 //	if(currentTemp < 0)
@@ -353,10 +354,15 @@ void Task_DS2782_Display(void){
 	Lcd_BinToDecWithSign(currentTemp, 4, LCD_CHAR_SIZE_NORM);
 	Lcd_Print("mA");
 	//----------------------------------------------
-	Lcd_SetCursor(1, 8);
+	Lcd_SetCursor(1, 7);
 	Lcd_Print("Bat_Iacc= ");
 	Lcd_BinToDec(DS2782.AccumulatedCurrent, 8, LCD_CHAR_SIZE_NORM);
 	Lcd_Print("uAh");
+
+	Lcd_SetCursor(1, 8);
+	Lcd_Print("Bat_ACRL= ");
+	Lcd_BinToDec(DS2782.ACRL, 8, LCD_CHAR_SIZE_NORM);
+	Lcd_Print("nAh");
 }
 //*******************************************************************************************
 //*******************************************************************************************
@@ -553,7 +559,7 @@ int main(void){
 	Config_Init();
 	//***********************************************
 	//Ини-я DS2782.
-//	DS2782_Init(DS2782_I2C, I2C_GPIO_NOREMAP);
+	DS2782_Init(DS2782_I2C, I2C_GPIO_NOREMAP);
 	//***********************************************
 	//Инициализация графического дисплея LM6063D.
 	Lcd_Init();
@@ -584,7 +590,7 @@ int main(void){
 
 	SysTick_Init();
 	__enable_irq();
-	//**************************************************************
+	//***********************************************
 	while(1)
 	{
 		RTOS_DispatchLoop();

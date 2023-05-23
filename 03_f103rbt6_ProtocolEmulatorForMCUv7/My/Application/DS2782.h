@@ -95,6 +95,7 @@ typedef struct{
 	int16_t  Current;
 	int16_t  AverageCurrent;
 	uint32_t AccumulatedCurrent;
+	uint32_t ACRL;
 }DS2782_t;
 //*******************************************************************************************
 //*******************************************************************************************
@@ -106,6 +107,7 @@ void 	 DS2782_GetVoltage(DS2782_t *ds);
 void 	 DS2782_GetCurrent(DS2782_t *ds);
 void 	 DS2782_GetAverageCurrent(DS2782_t *ds);
 void 	 DS2782_GetAccumulatedCurrent(DS2782_t *ds);
+void 	 DS2782_GetACRL(DS2782_t *ds);
 
 void Coulomb_Calc(uint16_t current);
 //*******************************************************************************************

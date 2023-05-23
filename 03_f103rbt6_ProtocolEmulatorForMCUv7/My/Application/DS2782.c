@@ -48,6 +48,7 @@ void DS2782_Init(I2C_TypeDef *i2c, uint32_t i2cRemap){
 //	I2C_Init(i2c, i2cRemap);
 
 	uint8_t txBuf[2] = {0};
+	//-------------------
 	_ds2782_WriteData(Register_ACR, txBuf, 2);
 }
 //************************************************************
@@ -83,7 +84,7 @@ void DS2782_GetVoltage(DS2782_t *ds){
 
 	//получение напряжения на АКБ.
 	uint32_t adcTemp = _ds2782_ReadData(Register_VOLT, 2)>>5;//младшие 5 бит незначащие.
-
+	//-------------------
 	//adcTemp  &= 0b0000001111111111;//Уберем знак
 	adcTemp  *= 488;               //это 4,88mV * 100. Это нужно чтобы избавится от запятой => получили микровольты
 	adcTemp  *= 5475; 			   //это коэф-т деления резистивного делителя, умноженный на 1000.
@@ -96,8 +97,8 @@ void DS2782_GetVoltage(DS2782_t *ds){
 void DS2782_GetCurrent(DS2782_t *ds){
 
 	int32_t currentAdcTemp = (int16_t)_ds2782_ReadData(Register_CURRENT, 2) * 1563;//
-	ds->Current 		   = ((currentAdcTemp + 5000) / 10000); //mA
-	//ds->Current 		   = ((currentAdcTemp + 5) / 10);	    //uA
+	//ds->Current 		   = ((currentAdcTemp + 5000) / 10000); //mA
+	ds->Current 		   = ((currentAdcTemp + 5) / 10);	    //uA
 }
 //************************************************************
 //Получения усредненного за 28сек. тока.
@@ -113,7 +114,20 @@ void DS2782_GetAccumulatedCurrent(DS2782_t *ds){
 //	uint32_t currentAdcTemp = (DS2782_ReadData(Register_ACRL, 2)>>4) * 625;
 //	ds->AccumulatedCurrent	= ((currentAdcTemp + 500) / 1000);
 
-	ds->AccumulatedCurrent = _ds2782_ReadData(Register_ACR, 2) * 625;//uAh
+//	uint32_t acr  = _ds2782_ReadData(Register_ACR, 2);
+//	uint32_t acrl = _ds2782_ReadData(Register_ACRL, 2);
+//	//-------------------
+//	acr = (acr << 16) | (acrl & 0x0000FFFF);//
+//	acr = acr >> 4;	                        //уберем 4 незначащих бита.
+//	ds->AccumulatedCurrent = acr * 625;     //uAh
+
+	ds->AccumulatedCurrent = _ds2782_ReadData(Register_ACR, 2); //* 625;//uAh
+}
+//************************************************************
+void DS2782_GetACRL(DS2782_t *ds){
+
+	uint32_t acrl = _ds2782_ReadData(Register_ACRL, 2) >> 4;//уберем 4 младших незначащих бита.
+	ds->ACRL = acrl * 153;
 }
 //************************************************************
 void Coulomb_Calc(uint16_t current){
