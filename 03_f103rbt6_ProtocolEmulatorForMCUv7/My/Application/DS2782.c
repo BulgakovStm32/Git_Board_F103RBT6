@@ -45,7 +45,8 @@ static void _ds2782_WriteData(uint8_t regAddr, uint8_t *pBuf, uint8_t len){
 //*******************************************************************************************
 void DS2782_Init(I2C_TypeDef *i2c, uint32_t i2cRemap){
 
-//	I2C_Init(i2c, i2cRemap);
+	//I2C_Init(i2c, i2cRemap);
+	//I2C_Master_Init(i2c, i2cRemap);
 
 	uint8_t txBuf[2] = {0};
 	//-------------------

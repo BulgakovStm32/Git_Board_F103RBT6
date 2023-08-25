@@ -261,14 +261,14 @@ uint8_t Battery_GetPercentCharge(void){
 //Работа с микросхемой DS2782.
 void Task_DS2782(void){
 
-	DS2782_GetI2cAddress(&DS2782); 		//получение адреса на шине I2C
+//	DS2782_GetI2cAddress(&DS2782); 		//получение адреса на шине I2C
 	//DS2782_GetID(&DS2782);         		//получение Unique ID (factory option)
 	DS2782_GetTemperature(&DS2782);		//получение температуры.
  	DS2782_GetVoltage(&DS2782);    		//получение напряжения на АКБ.
-	DS2782_GetCurrent(&DS2782);    		//получения тока потребления от АКБ.
-	DS2782_GetAverageCurrent(&DS2782);	//получения усредненного за 28 сек. тока потребления от АКБ.
-	DS2782_GetAccumulatedCurrent(&DS2782);
-	DS2782_GetACRL(&DS2782);
+//	DS2782_GetCurrent(&DS2782);    		//получения тока потребления от АКБ.
+//	DS2782_GetAverageCurrent(&DS2782);	//получения усредненного за 28 сек. тока потребления от АКБ.
+//	DS2782_GetAccumulatedCurrent(&DS2782);
+//	DS2782_GetACRL(&DS2782);
 }
 //************************************************************
 void Task_DS2782_Display(void){
@@ -279,7 +279,7 @@ void Task_DS2782_Display(void){
 	//Очистка видеобуфера.
 	Lcd_ClearVideoBuffer();
 	//Шапка;
-	Lcd_PrintStringAndNumber(1, 1, "_DS2782_", 0, 0);
+	Lcd_PrintStringAndNumber(1, 1, "_DS2782_v01", 0, 0);
 	//Вывод времени.
 //	Time_Display(14, 1);
 	//----------------------------------------------
@@ -513,8 +513,8 @@ void Task_DisplayPageSelect(void){
 		break;
 		//--------------------
 		case 1:
-			RTOS_SetTask(Task_DS2782,	  	  0, 0);
-			RTOS_SetTask(Task_DS2782_Display, 3, 0);
+			RTOS_SetTask(Task_DS2782,	  	  1,  0);
+			RTOS_SetTask(Task_DS2782_Display, 10, 0);
 		break;
 		//--------------------
 		case 2:
