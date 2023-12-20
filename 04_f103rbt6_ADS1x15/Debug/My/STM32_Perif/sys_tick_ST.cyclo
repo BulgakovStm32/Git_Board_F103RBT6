@@ -1,0 +1,5 @@
+E:/Anton/07_Git/Git_Board_F103RBT6/04_f103rbt6_ADS1x15/My/CMSIS/core_cm3.h:1499:26:__NVIC_GetPriorityGrouping	1
+E:/Anton/07_Git/Git_Board_F103RBT6/04_f103rbt6_ADS1x15/My/CMSIS/core_cm3.h:1511:22:__NVIC_EnableIRQ	2
+E:/Anton/07_Git/Git_Board_F103RBT6/04_f103rbt6_ADS1x15/My/CMSIS/core_cm3.h:1639:22:__NVIC_SetPriority	2
+E:/Anton/07_Git/Git_Board_F103RBT6/04_f103rbt6_ADS1x15/My/CMSIS/core_cm3.h:1686:26:NVIC_EncodePriority	2
+../My/STM32_Perif/sys_tick_ST.c:6:6:SysTick_Init	1

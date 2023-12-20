@@ -1,0 +1,6 @@
+../My/Application/Delay.c:16:6:msDelay_Loop	4	static
+../My/Application/Delay.c:21:6:msDelay	16	static,ignoring_inline_asm
+../My/Application/Delay.c:28:6:DELAY_Init	4	static
+../My/Application/Delay.c:35:10:DELAY_microSecCount	16	static
+../My/Application/Delay.c:42:6:DELAY_microS	24	static
+../My/Application/Delay.c:54:6:DELAY_milliS	16	static

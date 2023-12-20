@@ -1,0 +1,6 @@
+../My/Application/Config.c:16:6:_config_SaveToFlash	24	static
+../My/Application/Config.c:32:6:_config_ReadFromFlash	24	static
+../My/Application/Config.c:48:11:Config	4	static
+../My/Application/Config.c:54:11:Config_Save	4	static
+../My/Application/Config.c:62:6:Config_Init	16	static
+../My/Application/Config.c:94:6:Config_SaveLoop	8	static

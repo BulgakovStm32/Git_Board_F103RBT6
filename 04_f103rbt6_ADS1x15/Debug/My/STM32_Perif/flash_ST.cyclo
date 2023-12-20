@@ -1,0 +1,5 @@
+../My/STM32_Perif/flash_ST.c:20:6:STM32_Flash_Lock	1
+../My/STM32_Perif/flash_ST.c:26:6:STM32_Flash_Unlock	1
+../My/STM32_Perif/flash_ST.c:36:6:STM32_Flash_ErasePage	4
+../My/STM32_Perif/flash_ST.c:48:6:STM32_Flash_WriteWord	5
+../My/STM32_Perif/flash_ST.c:65:10:STM32_Flash_ReadWord	1

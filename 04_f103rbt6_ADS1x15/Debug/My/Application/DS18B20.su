@@ -1,0 +1,13 @@
+../My/Application/DS18B20.c:16:22:OneWire_usDelay	16	static
+../My/Application/DS18B20.c:25:13:OneWire_GpioInit	24	static
+../My/Application/DS18B20.c:51:16:OneWire_Reset	24	static
+../My/Application/DS18B20.c:68:13:OneWire_WriteBit	24	static
+../My/Application/DS18B20.c:83:13:OneWire_WriteByte	24	static
+../My/Application/DS18B20.c:91:16:OneWire_ReadBit	24	static
+../My/Application/DS18B20.c:121:13:DS18B20_ReadTemperature	24	static,ignoring_inline_asm
+../My/Application/DS18B20.c:258:6:TemperatureSens_GpioInit	16	static
+../My/Application/DS18B20.c:263:6:TemperatureSens_SetResolution	16	static
+../My/Application/DS18B20.c:274:6:TemperatureSens_StartConvertTemperature	16	static
+../My/Application/DS18B20.c:281:6:TemperatureSens_ReadTemperature	16	static
+../My/Application/DS18B20.c:297:10:TemperatureSens_Sign	16	static
+../My/Application/DS18B20.c:302:10:TemperatureSens_Temperature	16	static

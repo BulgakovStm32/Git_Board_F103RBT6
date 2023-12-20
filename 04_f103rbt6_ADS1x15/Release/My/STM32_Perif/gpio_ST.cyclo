@@ -1,0 +1,11 @@
+../My/STM32_Perif/gpio_ST.c:22:17:_gpio_PortXClockEnable	4
+../My/STM32_Perif/gpio_ST.c:35:6:STM32_GPIO_InitForOutputPushPull	3
+../My/STM32_Perif/gpio_ST.c:54:6:STM32_GPIO_InitForOutputOpenDrain	3
+../My/STM32_Perif/gpio_ST.c:75:6:STM32_GPIO_InitForInputPullUp	3
+../My/STM32_Perif/gpio_ST.c:99:6:STM32_GPIO_InitForInputPullDown	3
+../My/STM32_Perif/gpio_ST.c:123:6:STM32_GPIO_InitForFloatingInput	3
+../My/STM32_Perif/gpio_ST.c:146:6:STM32_GPIO_InitForAnalogInput	3
+../My/STM32_Perif/gpio_ST.c:170:6:STM32_GPIO_Init	1
+../My/STM32_Perif/gpio_ST.c:226:6:STM32_GPIO_CheckLoop	3
+../My/STM32_Perif/gpio_ST.c:266:10:STM32_GPIO_GetPortState	4
+../My/STM32_Perif/gpio_ST.c:274:10:STM32_GPIO_GetPinState	4

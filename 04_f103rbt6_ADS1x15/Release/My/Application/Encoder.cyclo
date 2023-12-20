@@ -1,0 +1,5 @@
+../My/Application/Encoder.c:14:13:_encoder_GpioInit	5
+../My/Application/Encoder.c:48:6:ENCODER_Init	1
+../My/Application/Encoder.c:63:6:ENCODER_ScanLoop	9
+../My/Application/Encoder.c:114:6:ENCODER_IncDecParam	5
+../My/Application/Encoder.c:140:22:ENCODER_GetButton	1

@@ -1,0 +1,15 @@
+../MCUv7/Protocol_I2C.c:23:13:I2cRxParsing	12
+../MCUv7/Protocol_I2C.c:86:13:I2cTxParsing	1
+../MCUv7/Protocol_I2C.c:90:13:_protocol_i2c_ActIndication	1
+../MCUv7/Protocol_I2C.c:96:6:PROTOCOL_MASTER_I2C_Init	1
+../MCUv7/Protocol_I2C.c:116:6:PROTOCOL_MASTER_I2C_RequestToMCU	13
+../MCUv7/Protocol_I2C.c:217:6:PROTOCOL_MASTER_I2C_SendCmdToMCU	3
+../MCUv7/Protocol_I2C.c:241:6:PROTOCOL_MASTER_I2C_SetReducerRate	1
+../MCUv7/Protocol_I2C.c:252:6:PROTOCOL_MASTER_I2C_SetAccelerationTime	1
+../MCUv7/Protocol_I2C.c:263:6:PROTOCOL_MASTER_I2C_SetMaxVelocity	1
+../MCUv7/Protocol_I2C.c:274:6:PROTOCOL_MASTER_I2C_MotorTorqueCtrl	1
+../MCUv7/Protocol_I2C.c:285:6:PROTOCOL_MASTER_I2C_SetTargetPosition	1
+../MCUv7/Protocol_I2C.c:295:10:PROTOCOL_MASTER_I2C_GetI2cNacCount	1
+../MCUv7/Protocol_I2C.c:300:15:PROTOCOL_MASTER_I2C_GetDataMCU	1
+../MCUv7/Protocol_I2C.c:305:10:PROTOCOL_MASTER_I2C_DMAState	1
+../MCUv7/Protocol_I2C.c:310:6:PROTOCOL_MASTER_I2C_IncTimeoutAndReset	4

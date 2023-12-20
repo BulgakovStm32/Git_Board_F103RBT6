@@ -1,0 +1,5 @@
+../My/Display/LM6063D.c:6:13:Lm6063LcdPause	2
+../My/Display/LM6063D.c:11:13:Lm6063LcdGpioInit	1
+../My/Display/LM6063D.c:33:13:Lm6063LcdSendByte	2
+../My/Display/LM6063D.c:47:6:Lm6063LcdInit	1
+../My/Display/LM6063D.c:99:6:Lm6063LcdUpdate	4

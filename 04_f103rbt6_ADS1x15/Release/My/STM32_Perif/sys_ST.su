@@ -1,0 +1,8 @@
+../My/STM32_Perif/sys_ST.c:7:17:Init_RCC	16	static
+../My/STM32_Perif/sys_ST.c:60:6:Sys_Init	8	static
+../My/STM32_Perif/sys_ST.c:78:6:NMI_Handler	4	static
+../My/STM32_Perif/sys_ST.c:86:6:HardFault_Handler	8	static
+../My/STM32_Perif/sys_ST.c:95:6:MemManage_Handler	4	static
+../My/STM32_Perif/sys_ST.c:101:6:BusFault_Handler	4	static
+../My/STM32_Perif/sys_ST.c:107:6:UsageFault_Handler	4	static
+../My/STM32_Perif/sys_ST.c:113:6:SVC_Handler	4	static

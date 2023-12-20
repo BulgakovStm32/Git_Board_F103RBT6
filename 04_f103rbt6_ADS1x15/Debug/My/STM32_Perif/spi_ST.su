@@ -1,0 +1,9 @@
+../My/STM32_Perif/spi_ST.c:22:17:spi_LongWait	24	static
+../My/STM32_Perif/spi_ST.c:34:6:SPI_Init	16	static
+../My/STM32_Perif/spi_ST.c:96:6:SPI_Enable	16	static
+../My/STM32_Perif/spi_ST.c:101:6:SPI_Disable	16	static
+../My/STM32_Perif/spi_ST.c:106:6:SPI_BiDirMode	16	static
+../My/STM32_Perif/spi_ST.c:114:9:SPI_RxData	16	static
+../My/STM32_Perif/spi_ST.c:132:6:SPI_TxByte	16	static
+../My/STM32_Perif/spi_ST.c:140:9:SPI_TxRxByte	24	static
+../My/STM32_Perif/spi_ST.c:320:6:SPI2_IRQHandler	4	static

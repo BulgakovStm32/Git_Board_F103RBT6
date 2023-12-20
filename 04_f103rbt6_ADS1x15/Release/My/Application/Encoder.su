@@ -1,0 +1,5 @@
+../My/Application/Encoder.c:14:13:_encoder_GpioInit	24	static
+../My/Application/Encoder.c:48:6:ENCODER_Init	16	static
+../My/Application/Encoder.c:63:6:ENCODER_ScanLoop	32	static
+../My/Application/Encoder.c:114:6:ENCODER_IncDecParam	24	static
+../My/Application/Encoder.c:140:22:ENCODER_GetButton	16	static

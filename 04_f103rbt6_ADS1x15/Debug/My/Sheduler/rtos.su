@@ -1,0 +1,8 @@
+../My/Sheduler/rtos.c:23:22:_disableInterrupt	4	static
+../My/Sheduler/rtos.c:29:22:_enableInterrupt	4	static
+../My/Sheduler/rtos.c:38:6:RTOS_Init	4	static
+../My/Sheduler/rtos.c:51:6:RTOS_SetTask	32	static
+../My/Sheduler/rtos.c:87:6:RTOS_DeleteTask	32	static
+../My/Sheduler/rtos.c:108:6:RTOS_DispatchLoop	24	static
+../My/Sheduler/rtos.c:153:6:RTOS_TimerServiceLoop	16	static
+../My/Sheduler/rtos.c:173:10:RTOS_GetTickCount	4	static

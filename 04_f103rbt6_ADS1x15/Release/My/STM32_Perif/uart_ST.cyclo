@@ -1,0 +1,13 @@
+E:/Anton/07_Git/Git_Board_F103RBT6/04_f103rbt6_ADS1x15/My/CMSIS/core_cm3.h:1511:22:__NVIC_EnableIRQ	2
+E:/Anton/07_Git/Git_Board_F103RBT6/04_f103rbt6_ADS1x15/My/CMSIS/core_cm3.h:1639:22:__NVIC_SetPriority	2
+../My/STM32_Perif/uart_ST.c:23:6:Uart1Init	1
+../My/STM32_Perif/uart_ST.c:50:6:Uart1ManagingRx	2
+../My/STM32_Perif/uart_ST.c:57:6:Uart1StarTx	1
+../My/STM32_Perif/uart_ST.c:69:6:Uart1DmaStarTx	1
+../My/STM32_Perif/uart_ST.c:75:15:Uart1Handler	1
+../My/STM32_Perif/uart_ST.c:81:13:Usart1ClrErrFlag	1
+../My/STM32_Perif/uart_ST.c:88:6:USART1_IRQHandler	5
+../My/STM32_Perif/uart_ST.c:150:6:USART_Init	4
+../My/STM32_Perif/uart_ST.c:207:6:DMA1Ch4InitForTx	1
+../My/STM32_Perif/uart_ST.c:229:6:DMA1Ch4StartTx	1
+../My/STM32_Perif/uart_ST.c:238:6:DMA1_Channel4_IRQHandler	2

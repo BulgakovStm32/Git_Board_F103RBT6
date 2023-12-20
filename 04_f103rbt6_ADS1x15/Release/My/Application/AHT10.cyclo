@@ -1,0 +1,5 @@
+../My/Application/AHT10.c:21:6:AHT10_Init	1
+../My/Application/AHT10.c:25:6:AHT10_SoftReset	1
+../My/Application/AHT10.c:36:10:AHT10	1
+../My/Application/AHT10.c:41:6:AHT10_ReadData	2
+../My/Application/AHT10.c:82:9:AHT10_GetTemperatureSign	1

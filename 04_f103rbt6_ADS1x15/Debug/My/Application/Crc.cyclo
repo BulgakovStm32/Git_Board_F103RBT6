@@ -1,0 +1,4 @@
+../My/Application/Crc.c:56:10:CRC16_FastCalculate	2
+../My/Application/Crc.c:70:9:CRC8_Calculate	4
+../My/Application/Crc.c:129:9:CRC8_FastCalculate	2
+../My/Application/Crc.c:141:9:CRC_Calculate	1
