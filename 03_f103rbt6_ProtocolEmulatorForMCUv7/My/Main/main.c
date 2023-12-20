@@ -376,9 +376,9 @@ void Task_MCUv7DataDisplay(void){
 	//Очистка видеобуфера.
 	Lcd_ClearVideoBuffer();
 	//Шапка
-	Lcd_PrintStringAndNumber(1, 1,"Emul_MCUv7", 0, 0);
+	Lcd_PrintStringAndNumber(1, 1,"Emul_MCUv7_000", 0, 0);
 	//Вывод времени.
-	Time_Display(14, 1);
+	//Time_Display(14, 1);
 	//----------------------------------------------
 	//По нажатию на кнопку энкодера переход к выбору редактируемого параметра.
 	IncrementOnEachPass(&redaction, ENCODER_GetButton(&Encoder), 1, 1);
@@ -504,7 +504,7 @@ void Task_DisplayPageSelect(void){
 //	else						   LedPC13Off();
 
 	//Если на какой-то странице производится редактирование то выбор страницы запрешен
-	if(!redaction) ENCODER_IncDecParam(&Encoder, &pageIndex, 1, 0, 2);//Выбор сраницы
+	//if(!redaction) ENCODER_IncDecParam(&Encoder, &pageIndex, 1, 0, 2);//Выбор сраницы
 	switch(pageIndex){
 		//--------------------
 		case 0:
