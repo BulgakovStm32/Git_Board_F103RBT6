@@ -57,6 +57,9 @@ default.size.stdout \
 OBJDUMP_LIST += \
 f103rbt6_ADS1x15.list \
 
+OBJCOPY_HEX += \
+f103rbt6_ADS1x15.hex \
+
 
 # All Target
 all: main-build
@@ -80,12 +83,17 @@ f103rbt6_ADS1x15.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS
 	@echo 'Finished building: $@'
 	@echo ' '
 
+f103rbt6_ADS1x15.hex: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objcopy  -O ihex $(EXECUTABLES) "f103rbt6_ADS1x15.hex"
+	@echo 'Finished building: $@'
+	@echo ' '
+
 # Other Targets
 clean:
-	-$(RM) default.size.stdout f103rbt6_ADS1x15.elf f103rbt6_ADS1x15.list f103rbt6_ADS1x15.map
+	-$(RM) default.size.stdout f103rbt6_ADS1x15.elf f103rbt6_ADS1x15.hex f103rbt6_ADS1x15.list f103rbt6_ADS1x15.map
 	-@echo ' '
 
-secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
+secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_HEX)
 
 fail-specified-linker-script-missing:
 	@echo 'Error: Cannot find the specified linker script. Check the linker settings in the build configuration.'

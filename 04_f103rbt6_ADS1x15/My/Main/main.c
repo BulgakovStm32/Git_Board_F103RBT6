@@ -16,6 +16,8 @@
 
 //*******************************************************************************************
 //*******************************************************************************************
+const char ProjectName[] = "ADS1115_v00";
+
 Time_t	  		Time;
 DS18B20_t 		Sensor_1;
 DS18B20_t 		Sensor_2;
@@ -368,7 +370,7 @@ void Task_DS2782_Display(void){
 //*******************************************************************************************
 //*******************************************************************************************
 //*******************************************************************************************
-void Task_MCUv7DataDisplay(void){
+void Task_DataDisplay(void){
 
 		   uint32_t temp;
 	static uint32_t strIndex = 0;
@@ -376,7 +378,9 @@ void Task_MCUv7DataDisplay(void){
 	//Очистка видеобуфера.
 	Lcd_ClearVideoBuffer();
 	//Шапка
-	Lcd_PrintStringAndNumber(1, 1,"Emul_MCUv7_000", 0, 0);
+	//Lcd_PrintStringAndNumber(1, 1,"Emul_MCUv7_123", 0, 0);
+	Lcd_PrintStringAndNumber(1, 1, (char*)ProjectName, 0, 0);
+
 	//Вывод времени.
 	//Time_Display(14, 1);
 	//----------------------------------------------
@@ -426,7 +430,7 @@ void Task_MCUv7DataDisplay(void){
 //	Lcd_u32ToHex(temp);
 	//----------------------------------------------
 	//Отображение заряда АКБ в виде батарейки.
-	uint8_t batPercent = Battery_GetPercentCharge();
+	uint8_t batPercent = 62;//Battery_GetPercentCharge();
 
 //	Lcd_SetCursor(16, 7);
 //	Lcd_PrintBig("%");
@@ -509,7 +513,7 @@ void Task_DisplayPageSelect(void){
 		//--------------------
 		case 0:
 			RTOS_SetTask(PROTOCOL_MASTER_I2C_RequestToMCU, 1, 0);
-			RTOS_SetTask(Task_MCUv7DataDisplay, 2, 0);
+			RTOS_SetTask(Task_DataDisplay, 2, 0);
 		break;
 		//--------------------
 		case 1:
